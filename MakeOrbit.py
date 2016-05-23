@@ -113,11 +113,51 @@ def makeorbit(qp0):
     qp = np.delete(qp,np.shape(qp)[0]-1,0) # Ensure the shape matches for later fcns
     return qp
 
+def findphiR(x,y,t):
+    OmegaCR = vc/CR # Define orbital frequency
+    rotationangle = (t*OmegaCR).decompose() *u.rad
+    if (x < 0  and y >= 0): phiR = np.arctan(y/x) + pi *u.rad - rotationangle
+    elif (x < 0  and y < 0):  phiR = np.arctan(y/x) - pi *u.rad - rotationangle
+    elif (x == 0 and y > 0):  phiR = pi/2. *u.rad - rotationangle
+    elif (x == 0 and y < 0):  phiR = -pi *u.rad - rotationangle
+    elif (x == 0 and y == 0): phiR = - rotationangle
+    else: phiR = np.arctan(y/x) - rotationangle
+    return phiR
+
+
+def toRframe(qp):  # Convert coordinates from N-frame to R-frame
+    OmegaCR = vc/CR # Define orbital frequency
+    # Transform into cylindrical coordinates
+    x = qp[:,0] *u.kpc
+    y = qp[:,1] *u.kpc
+    vx = qp[:,2] *u.km/u.s
+    vy = qp[:,3] *u.km/u.s
+    t = T *u.yr
+    R = np.sqrt(x**2 + y**2)
+    phiR = np.arctan(y/x) - (t*OmegaCR).decompose() *u.rad
+    for i in xrange(0,np.shape(phiR)[0]):
+        phiR[i] = findphiR(x[i],y[i],t[i])
+    xR = R *np.cos(phiR)
+    yR = R *np.sin(phiR)
+    vphiR = np.abs(vy *np.cos(np.arctan(y/x))) + np.abs(vx *np.sin(np.arctan(y/x)))
+    vxR = vphiR *np.cos(phiR)
+    vyR = vphiR *np.sin(phiR)
+
+    xR = (xR/u.kpc).decompose()
+    yR = (yR/u.kpc).decompose()
+    vxR = (vxR /u.km*u.s).decompose()
+    vyR = (vyR /u.km*u.s).decompose()
+    R = (R/u.kpc).decompose()
+    vphiR = (vphiR/u.km*u.s).decompose()
+    qpR = np.transpose(np.array([xR,yR,vxR,vyR,R,vphiR]))
+    return qpR
+
+
 '''  
 x0 = 7.6 # Must use implicit units of kpc
 y0 = 0. # Must use implicit units of kpc
-vx0 = 2.5 # Must use implicit units of km/s
-vy0 = 220. # Must use implicit units of km/s
+vx0 = -2.5 # Must use implicit units of km/s
+vy0 = 223. # Must use implicit units of km/s
 qp0 = np.array([x0,y0,vx0,vy0])
 qp = makeorbit(qp0)
 
