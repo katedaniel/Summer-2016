@@ -4,8 +4,8 @@ import numpy as np
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 from timeit import default_timer
-
 start = default_timer()
+
 
 #########################
 # Defining some constants
@@ -43,7 +43,7 @@ T = np.linspace(0,IntTimeUnitless,NSteps)
 m = 4
 theta = 25 *u.degree
 CR = 8 *u.kpc
-epsilon = 0.3
+epsilon = 0.4
 
 # Functions that define spiral parameters
 def findalpha(m,theta): # Calculated parameter alpha
@@ -80,59 +80,28 @@ def dvdt(qp,tnow): # Finds the accelleration in this potential at coordinate x-y
     return np.array([dvxdt,dvydt])
 
 def leapstep(qpnow,tnow): # A single leapstep (t+dt), using kick-drift-kick method
-    
-    dt = StepTime
-    x = qpnow[0] *u.kpc
-    y = qpnow[1] *u.kpc
-    vx = qpnow[2] *u.km/u.s
-    vy = qpnow[3] *u.km/u.s
-    a = dvdt(qpnow,tnow) # Find acceleration at this coordinate
-    vx = vx -0.5 *dt *a[0]*(u.km /u.s**2) # Advance v_x by half step
-    vy = vy -0.5 *dt *a[1]*(u.km /u.s**2) # Advance v_y by half step
-    x = x +dt *vx # Advance x by full step
-    y = y +dt *vy # Advance y by full step
-    # Make unitless and in correct units
-    x = (x /u.kpc ).decompose()
-    y = (y /u.kpc ).decompose()
-    vx = (vx /(u.km/u.s) ).decompose()
-    vy = (vy /(u.km/u.s) ).decompose()
-    qpmid = np.array([x,y,vx,vy])
-    a=dvdt(qpmid,tnow) # Find a at new position and complete the velocity step
-    # Put units back on velocities
-    vx = vx*(u.km/u.s) -0.5 *dt *a[0]*(u.km /u.s**2) # Complete v_x step
-    vy = vy*(u.km/u.s) -0.5 *dt *a[1]*(u.km /u.s**2) # Complete v_y step
-    # Make unitless again
-    vx = (vx /(u.km /u.s) ).decompose()
-    vy = (vy /(u.km /u.s) ).decompose()
-    qpnew = np.array([x,y,vx,vy]) 
-    return qpnew
-    '''
-    dt = (StepTime/u.yr)*3.15576e+07
-    
+    dt = (StepTime/u.year)*3.15576e+07 #convert StepTime to seconds and remove units
     x = qpnow[0]
     y = qpnow[1]
-    vx = qpnow[2]*3.240779289469756e-17
-    vy = qpnow[3]*3.240779289469756e-17
-    
+    vx = qpnow[2]
+    vy = qpnow[3]
+    # x and y are in kpc, vx and vy are in km/s
     a = dvdt(qpnow,tnow) # Find acceleration at this coordinate
-    vx = vx -(0.5 *dt *a[0]*3.240779289469756e-17) # Advance v_x by half step
-    vy = vy -(0.5 *dt *a[1]*3.240779289469756e-17) # Advance v_y by half step
-    x = x +dt *vx # Advance x by full step
-    y = y +dt *vy # Advance y by full step
-    
+    vx = vx -0.5 *dt *a[0] # Advance v_x by half step
+    vy = vy -0.5 *dt *a[1] # Advance v_y by half step
+    x = x +(dt*vx*3.24077928947e-17) # Advance x by full step, while converting v*dt from km to kpc
+    y = y +(dt*vy*3.24077928947e-17) # Advance y by full step, while converting v*dt from km to kpc
+    # x and y are in kpc, vx and vy are in km/s
     qpmid = np.array([x,y,vx,vy])
-    a=dvdt(qpmid,tnow) # Find a at new position and complete the velocity step
-    # Put units back on velocities
-    vx = (vx* -0.5 *dt *a[0]*3.240779289469756e-17)*3.0856775814671916e+16  # Complete v_x step
-    vy = (vy* -0.5 *dt *a[1]*3.240779289469756e-17)*3.0856775814671916e+16  # Complete v_y step
-  
-    qpnew = np.array([x,y,vx,vy])
+    a  =dvdt(qpmid,tnow) # Find a at new position and complete the velocity step
+    vx = vx -0.5 *dt *a[0] # Complete v_x step
+    vy = vy -0.5 *dt *a[1] # Complete v_y step
+    qpnew = np.array([x,y,vx,vy]) 
     return qpnew
-    '''
     
 def makeorbit(qp0):
-    qp = np.array([qp0])
-    print('Steps: ', NSteps)
+    qp = np.array([qp0]) #unnecessary, its already an array
+    print NSteps
     for x in T:
         qpstep = leapstep(qp0,x)
         qp = np.concatenate((qp,np.array([qpstep])),axis=0)
@@ -161,7 +130,7 @@ def toRframe(qp):  # Convert coordinates from N-frame to R-frame
     vy = qp[:,3] *u.km/u.s
     t = T *u.yr
     R = np.sqrt(x**2 + y**2)
-    phiR = np.arctan(y/x) - (t*OmegaCR).decompose() *u.rad
+    phiR = np.arctan(y/x) - (t*OmegaCR).decompose() *u.rad #this is a slightly unecessary way to get the array shape, just use qp?
     for i in xrange(0,np.shape(phiR)[0]):
         phiR[i] = findphiR(x[i],y[i],t[i])
     xR = R *np.cos(phiR)
@@ -178,28 +147,31 @@ def toRframe(qp):  # Convert coordinates from N-frame to R-frame
     vphiR = (vphiR/u.km*u.s).decompose()
     qpR = np.transpose(np.array([xR,yR,vxR,vyR,R,vphiR]))
     return qpR
- 
+
+
+
 x0 = 7.6 # Must use implicit units of kpc
 y0 = 0. # Must use implicit units of kpc
 vx0 = -2.5 # Must use implicit units of km/s
 vy0 = 223. # Must use implicit units of km/s
 qp0 = np.array([x0,y0,vx0,vy0])
 qp = makeorbit(qp0)
+qpR = toRframe(qp)
 
-
+'''
 plt.xlabel(r'$x$ (kpc)')
 plt.ylabel(r'$y$ (kpc)')
 plt.axis([-10,10,-10,10])
 plt.plot(qp[:,0],qp[:,1], color="SlateBlue")
 plt.show()
-
-qpR = toRframe(qp)
+'''
 plt.xlabel(r'$x$ (kpc)')
 plt.ylabel(r'$y$ (kpc)')
 plt.axis([-10,10,-10,10])
 plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue")
 plt.show()
 
-duration = default_timer() - start
-print(duration)
 
+duration = default_timer() - start
+print 'time:'
+print duration
