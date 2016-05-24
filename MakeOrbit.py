@@ -166,4 +166,13 @@ plt.ylabel(r'$y$ (kpc)')
 plt.axis([-10,10,-10,10])
 plt.plot(qp[:,0],qp[:,1], color="SlateBlue")
 plt.show()
+
+qpR = toRframe(qp)
+plt.xlabel(r'$x$ (kpc)')
+plt.ylabel(r'$y$ (kpc)')
+plt.axis([-10,10,-10,10])
+plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue")
+plt.show()
+
+
 '''
