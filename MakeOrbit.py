@@ -4,6 +4,8 @@ import numpy as np
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
+# Andrew's sample comment
+
 #########################
 # Defining some constants
 #########################
@@ -129,3 +131,6 @@ plt.show()
 '''
 
 print 'goodbye'
+'''
+meaningless change
+'''
