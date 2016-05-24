@@ -3,8 +3,9 @@ import astropy.constants as const
 import numpy as np
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
+from timeit import default_timer
 
-# Andrew's sample comment
+start = default_timer()
 
 #########################
 # Defining some constants
@@ -79,6 +80,7 @@ def dvdt(qp,tnow): # Finds the accelleration in this potential at coordinate x-y
     return np.array([dvxdt,dvydt])
 
 def leapstep(qpnow,tnow): # A single leapstep (t+dt), using kick-drift-kick method
+    
     dt = StepTime
     x = qpnow[0] *u.kpc
     y = qpnow[1] *u.kpc
@@ -104,10 +106,33 @@ def leapstep(qpnow,tnow): # A single leapstep (t+dt), using kick-drift-kick meth
     vy = (vy /(u.km /u.s) ).decompose()
     qpnew = np.array([x,y,vx,vy]) 
     return qpnew
+    '''
+    dt = (StepTime/u.yr)*3.15576e+07
+    
+    x = qpnow[0]
+    y = qpnow[1]
+    vx = qpnow[2]*3.240779289469756e-17
+    vy = qpnow[3]*3.240779289469756e-17
+    
+    a = dvdt(qpnow,tnow) # Find acceleration at this coordinate
+    vx = vx -(0.5 *dt *a[0]*3.240779289469756e-17) # Advance v_x by half step
+    vy = vy -(0.5 *dt *a[1]*3.240779289469756e-17) # Advance v_y by half step
+    x = x +dt *vx # Advance x by full step
+    y = y +dt *vy # Advance y by full step
+    
+    qpmid = np.array([x,y,vx,vy])
+    a=dvdt(qpmid,tnow) # Find a at new position and complete the velocity step
+    # Put units back on velocities
+    vx = (vx* -0.5 *dt *a[0]*3.240779289469756e-17)*3.0856775814671916e+16  # Complete v_x step
+    vy = (vy* -0.5 *dt *a[1]*3.240779289469756e-17)*3.0856775814671916e+16  # Complete v_y step
+  
+    qpnew = np.array([x,y,vx,vy])
+    return qpnew
+    '''
     
 def makeorbit(qp0):
     qp = np.array([qp0])
-    print NSteps
+    print('Steps: ', NSteps)
     for x in T:
         qpstep = leapstep(qp0,x)
         qp = np.concatenate((qp,np.array([qpstep])),axis=0)
@@ -153,9 +178,7 @@ def toRframe(qp):  # Convert coordinates from N-frame to R-frame
     vphiR = (vphiR/u.km*u.s).decompose()
     qpR = np.transpose(np.array([xR,yR,vxR,vyR,R,vphiR]))
     return qpR
-
-
-'''  
+ 
 x0 = 7.6 # Must use implicit units of kpc
 y0 = 0. # Must use implicit units of kpc
 vx0 = -2.5 # Must use implicit units of km/s
@@ -163,20 +186,12 @@ vy0 = 223. # Must use implicit units of km/s
 qp0 = np.array([x0,y0,vx0,vy0])
 qp = makeorbit(qp0)
 
+
 plt.xlabel(r'$x$ (kpc)')
 plt.ylabel(r'$y$ (kpc)')
 plt.axis([-10,10,-10,10])
 plt.plot(qp[:,0],qp[:,1], color="SlateBlue")
 plt.show()
-
-'''
-
-#Luke was here
-
-
-print 'goodbye'
-'''
-meaningless change
 
 qpR = toRframe(qp)
 plt.xlabel(r'$x$ (kpc)')
@@ -185,4 +200,6 @@ plt.axis([-10,10,-10,10])
 plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue")
 plt.show()
 
-'''
+duration = default_timer() - start
+print(duration)
+
