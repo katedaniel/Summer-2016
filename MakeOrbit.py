@@ -5,6 +5,7 @@ from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
 # Andrew's sample comment
+# Andrew's second comment
 
 #########################
 # Defining some constants
