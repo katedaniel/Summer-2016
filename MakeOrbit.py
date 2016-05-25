@@ -165,22 +165,6 @@ plt.axis([-10,10,-10,10])
 plt.plot(qp[:,0],qp[:,1], color="SlateBlue")
 plt.show()
 '''
-<<<<<<< HEAD
-plt.xlabel(r'$x$ (kpc)')
-plt.ylabel(r'$y$ (kpc)')
-plt.axis([-10,10,-10,10])
-plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue")
-t = np.linspace(0.0, 2*np.pi, num=100)
-x = CR*np.cos(t)
-y = CR*np.sin(t)
-plt.plot(x,y,color="red")
-plt.show()
-
-
-duration = default_timer() - start
-print 'time:'
-print duration
-
 
 plt.close('all') #close old plots still up
 
@@ -203,4 +187,3 @@ plt.show()
 duration = default_timer() - start
 print 'time:'
 print duration
->>>>>>> Noah
