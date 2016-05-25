@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from timeit import default_timer
 start = default_timer()
 
+
 #########################
 # Defining some constants
 #########################
@@ -42,7 +43,7 @@ T = np.linspace(0,IntTimeUnitless,NSteps)
 m = 4
 theta = 25 *u.degree
 CR = 8 *u.kpc
-epsilon = 0.3
+epsilon = 0.4
 
 # Functions that define spiral parameters
 def findalpha(m,theta): # Calculated parameter alpha
@@ -164,6 +165,7 @@ plt.axis([-10,10,-10,10])
 plt.plot(qp[:,0],qp[:,1], color="SlateBlue")
 plt.show()
 '''
+<<<<<<< HEAD
 plt.xlabel(r'$x$ (kpc)')
 plt.ylabel(r'$y$ (kpc)')
 plt.axis([-10,10,-10,10])
@@ -178,3 +180,27 @@ plt.show()
 duration = default_timer() - start
 print 'time:'
 print duration
+
+
+plt.close('all') #close old plots still up
+
+fig=plt.figure(1) #setting up the basic figure with axes and labels
+ax=fig.add_subplot(1,1,1)
+plt.xlabel(r'$x$ (kpc)')
+plt.ylabel(r'$y$ (kpc)')
+plt.axis([-10,10,-10,10])
+
+plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue") #plotting the stellar path
+plt.plot(qpR[:,0][0], qpR[:,1][0], 'g*', markersize='12') #plotting the start of the stellar path
+circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False) #plotting CR radius
+linblad1 = plt.Circle((0,0), (CR/u.kpc)*0.8, color='r', fill=False, ls='dashed')
+linblad2 = plt.Circle((0,0), (CR/u.kpc)*1.2, color='r', fill=False, ls='dashed')
+ax.add_patch(circ)
+ax.add_patch(linblad1)
+ax.add_patch(linblad2)
+plt.show()
+
+duration = default_timer() - start
+print 'time:'
+print duration
+>>>>>>> Noah
