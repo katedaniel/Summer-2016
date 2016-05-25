@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from timeit import default_timer
 start = default_timer()
 
-
 #########################
 # Defining some constants
 #########################
@@ -43,7 +42,7 @@ T = np.linspace(0,IntTimeUnitless,NSteps)
 m = 4
 theta = 25 *u.degree
 CR = 8 *u.kpc
-epsilon = 0.4
+epsilon = 0.3
 
 # Functions that define spiral parameters
 def findalpha(m,theta): # Calculated parameter alpha
@@ -169,6 +168,10 @@ plt.xlabel(r'$x$ (kpc)')
 plt.ylabel(r'$y$ (kpc)')
 plt.axis([-10,10,-10,10])
 plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue")
+t = np.linspace(0.0, 2*np.pi, num=100)
+x = CR*np.cos(t)
+y = CR*np.sin(t)
+plt.plot(x,y,color="red")
 plt.show()
 
 
