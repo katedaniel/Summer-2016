@@ -1,7 +1,6 @@
 import astropy.units as u
 import astropy.constants as const
 import numpy as np
-from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 from timeit import default_timer
 start = default_timer()
@@ -100,7 +99,7 @@ def leapstep(qpnow,tnow): # A single leapstep (t+dt), using kick-drift-kick meth
     return qpnew
     
 def makeorbit(qp0):
-    qp = np.array([qp0]) #unnecessary, its already an array
+    qp = np.array([qp0])
     print NSteps
     for x in T:
         qpstep = leapstep(qp0,x)
@@ -130,8 +129,8 @@ def toRframe(qp):  # Convert coordinates from N-frame to R-frame
     vy = qp[:,3] *u.km/u.s
     t = T *u.yr
     R = np.sqrt(x**2 + y**2)
-    phiR = np.arctan(y/x) - (t*OmegaCR).decompose() *u.rad #this is a slightly unecessary way to get the array shape, just use qp?
-    for i in xrange(0,np.shape(phiR)[0]):
+    phiR = np.arctan(y/x) - (t*OmegaCR).decompose() *u.rad
+    for i in xrange(0,np.shape(qp)[0]):
         phiR[i] = findphiR(x[i],y[i],t[i])
     xR = R *np.cos(phiR)
     yR = R *np.sin(phiR)
@@ -174,8 +173,9 @@ plt.xlabel(r'$x$ (kpc)')
 plt.ylabel(r'$y$ (kpc)')
 plt.axis([-10,10,-10,10])
 
-plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue") #plotting the stellar path
-plt.plot(qpR[:,0][0], qpR[:,1][0], 'g*', markersize='12') #plotting the start of the stellar path
+plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue", markevery=500, marker='+', ms=10) 
+#plotting the stellar path, markers at (markerevery*StepTime) time, e.g. 10^7 years
+plt.plot(qpR[:,0][0], qpR[:,1][0], 'g*', markersize='9') #plotting the start of the stellar path
 circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False) #plotting CR radius
 linblad1 = plt.Circle((0,0), (CR/u.kpc)*0.8, color='r', fill=False, ls='dashed')
 linblad2 = plt.Circle((0,0), (CR/u.kpc)*1.2, color='r', fill=False, ls='dashed')
