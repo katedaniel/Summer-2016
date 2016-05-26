@@ -74,8 +74,8 @@ def dvdt(qp,tnow): # Finds the accelleration in this potential at coordinate x-y
     dvxS = dvSFront *(m*y - alpha*x)
     dvyS = -dvSFront *(m*x + alpha*y)
     # Find total acceleration
-    dvxdt = ( (dvxD + dvxS)/(u.km /u.s**2) ).decompose()
-    dvydt = ( (dvyD + dvyS)/(u.km /u.s**2) ).decompose()
+    dvxdt = ((dvxD + dvxS)/(u.km /u.s**2))
+    dvydt = ((dvyD + dvyS)/(u.km /u.s**2))
     return np.array([dvxdt,dvydt])
 
 def leapstep(qpnow,tnow): # A single leapstep (t+dt), using kick-drift-kick method
@@ -129,7 +129,7 @@ def toRframe(qp):  # Convert coordinates from N-frame to R-frame
     vy = qp[:,3] *u.km/u.s
     t = T *u.yr
     R = np.sqrt(x**2 + y**2)
-    phiR = np.arctan(y/x) - (t*OmegaCR).decompose() *u.rad
+    phiR = np.arctan(y/x)
     for i in xrange(0,np.shape(qp)[0]):
         phiR[i] = findphiR(x[i],y[i],t[i])
     xR = R *np.cos(phiR)
@@ -174,7 +174,7 @@ plt.ylabel(r'$y$ (kpc)')
 plt.axis([-10,10,-10,10])
 
 plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue", markevery=500, marker='+', ms=10) 
-#plotting the stellar path, markers at (markerevery*StepTime) time, e.g. 10^7 years
+#plotting the stellar path, markers at (markerevery*StepTime) time, e.g. 10^7
 plt.plot(qpR[:,0][0], qpR[:,1][0], 'g*', markersize='9') #plotting the start of the stellar path
 circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False) #plotting CR radius
 linblad1 = plt.Circle((0,0), (CR/u.kpc)*0.8, color='r', fill=False, ls='dashed')
