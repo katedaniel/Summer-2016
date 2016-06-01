@@ -1,10 +1,12 @@
 import astropy.units as u
 import astropy.constants as const
 import numpy as np
+from scipy.integrate import odeint
 import matplotlib.pyplot as plt
+from matplotlib import animation
 from timeit import default_timer
+import datetime
 start = default_timer()
-
 
 #########################
 # Defining some constants
@@ -23,6 +25,7 @@ RSun = 8 *u.kpc # Solar galactocentric radius
 SigmaSun = 50 *u.Msun /u.pc**2 # Surface density at the solar radius
 Rd = 2.5 *u.kpc # Scale length of the disk
 
+
 # Functions that define disk parameters
 def findSurfaceDensity(R): # Calculates the surface density of the disk at any radius
     Sigma0 = SigmaSun *np.exp(RSun/Rd)
@@ -33,9 +36,12 @@ def findSurfaceDensity(R): # Calculates the surface density of the disk at any r
 IntTime = 0.5 *u.Gyr # Total time over which to integrate
 StepTime = 100000. *u.yr # Time between each calculation
 # DON'T TOUCH the next three lines. They make the time series
+
 IntTimeUnitless = (IntTime /u.yr).decompose()
 NSteps = np.rint( (IntTime / StepTime).decompose() ) # Intiger number of total steps to take
 T = np.linspace(0,IntTimeUnitless,NSteps)
+
+RetardingConstant = 0.0001*NSteps #Animation related stuff
  
 ### Spiral paremeters 
 # You can toggle these  
@@ -43,6 +49,8 @@ m = 4.
 theta = 25. *u.degree
 CR = 8. *u.kpc
 epsilon = 0.3
+
+
 
 # Functions that define spiral parameters
 def findalpha(m,theta): # Calculated parameter alpha
@@ -136,6 +144,17 @@ def toRframe(qp):  # Convert coordinates from NR-frame to R-frame
     qpR = np.transpose(np.array([xR,yR,vxR,vyR,vr,vphi,vphiR]))
     return qpR
 
+def plotArms():
+    points = 100
+    radius = np.zeros(points)
+    t = np.linspace(0,np.pi/2)
+    
+    for i in xrange(0,m):
+    
+        radius = (CR/u.kpc)*np.exp((-m*(t) +np.pi)/alpha)
+        ax.plot(radius*np.cos(t+2*np.pi*i/m),radius*np.sin(t+2*np.pi*i/m), color="purple",ls='dotted')
+  
+    return None
 
 
 x0 = 7. # Must use implicit units of kpc
@@ -154,19 +173,42 @@ fig=plt.figure(1) #setting up the basic figure with axes and labels
 ax=fig.add_subplot(1,1,1)
 plt.xlabel(r'$x$ (kpc)')
 plt.ylabel(r'$y$ (kpc)')
-plt.axis([-10,10,-10,10])
+plt.axis([-13,13,-13,13])
 
+circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False,ls = 'dashed') #plotting CR radius
+ax.add_patch(circ)
+
+'''
+#Animation Stuff
+###############################################################################
+#Star
+s, = ax.plot(qpR[0,0],qpR[0,1], 'r*',markersize='12') #Draw initial location of star
+#Path
+paths, = ax.plot(qpR[0,0],qpR[0,1], color="red",ls='dotted')
+
+# animation function.  This is called sequentially
+def animate(i):
+    s.set_data(qpR[int(RetardingConstant*i),0],qpR[int(RetardingConstant*i),1])  
+    paths.set_data(qpR[0:int(RetardingConstant*i),0],qpR[0:int(RetardingConstant*i),1])
+    return s,paths
+    
+# call the animator.  blit=True means only re-draw the parts that have changed.
+anim = animation.FuncAnimation(fig, animate, frames=int(NSteps/RetardingConstant), interval=0.05, blit = True)
+###############################################################################
+plotArms()
+'''
+
+plt.plot(qpR[:,0][0], qpR[:,1][0], 'g*', markersize='9') #plotting the start of the stellar path
 plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
 #plotting the stellar path, markers at (markerevery*StepTime) time, e.g. 10^7
-plt.plot(qpR[:,0][0], qpR[:,1][0], 'g*', markersize='9') #plotting the start of the stellar path
-circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False) #plotting CR radius
-#linblad1 = plt.Circle((0,0), (CR/u.kpc)*0.8, color='r', fill=False, ls='dashed')
-#linblad2 = plt.Circle((0,0), (CR/u.kpc)*1.2, color='r', fill=False, ls='dashed')
-ax.add_patch(circ)
-#ax.add_patch(linblad1)
-#ax.add_patch(linblad2)
+
 plt.show()
 
 duration = default_timer() - start
 print 'time:'
 print duration
+
+filename = "qp_(m=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
+str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
+
+np.save('C:\Summer_2016\qp_file\%s' % filename,qp)
