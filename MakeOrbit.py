@@ -24,7 +24,7 @@ SigmaSun = 50 *u.Msun /u.pc**2 # Surface density at the solar radius
 Rd = 2.5 *u.kpc # Scale length of the disk
 
 # Functions that define disk parameters
-def findSurfaceDensity(R): # Calculats the surface density of the disk at any radius
+def findSurfaceDensity(R): # Calculates the surface density of the disk at any radius
     Sigma0 = SigmaSun *np.exp(RSun/Rd)
     SigmaR = Sigma0 *np.exp(-R/Rd)
     return SigmaR
@@ -39,10 +39,10 @@ T = np.linspace(0,IntTimeUnitless,NSteps)
  
 ### Spiral paremeters 
 # You can toggle these  
-m = 4
-theta = 25 *u.degree
-CR = 8 *u.kpc
-epsilon = 0.4
+m = 4.
+theta = 25. *u.degree
+CR = 8. *u.kpc
+epsilon = 0.3
 
 # Functions that define spiral parameters
 def findalpha(m,theta): # Calculated parameter alpha
@@ -99,73 +99,56 @@ def leapstep(qpnow,tnow): # A single leapstep (t+dt), using kick-drift-kick meth
     return qpnew
     
 def makeorbit(qp0):
-    qp = np.array([qp0])
+    qp = np.zeros(shape=(len(T),4))
+    qp[0] = qp0
     print NSteps
-    for x in T:
-        qpstep = leapstep(qp0,x)
-        qp = np.concatenate((qp,np.array([qpstep])),axis=0)
+    for i in range(len(T)):
+        qpstep = leapstep(qp0,T[i])
+        qp[i] = qpstep
         qp0 = qpstep
-    qp = np.delete(qp,np.shape(qp)[0]-1,0) # Ensure the shape matches for later fcns
     return qp
 
-def findphiR(x,y,t):
-    OmegaCR = vc/CR # Define orbital frequency
-    rotationangle = (t*OmegaCR).decompose() *u.rad
-    if (x < 0  and y >= 0): phiR = np.arctan(y/x) + pi *u.rad - rotationangle
-    elif (x < 0  and y < 0):  phiR = np.arctan(y/x) - pi *u.rad - rotationangle
-    elif (x == 0 and y > 0):  phiR = pi/2. *u.rad - rotationangle
-    elif (x == 0 and y < 0):  phiR = -pi *u.rad - rotationangle
-    elif (x == 0 and y == 0): phiR = - rotationangle
-    else: phiR = np.arctan(y/x) - rotationangle
-    return phiR
 
-
-def toRframe(qp):  # Convert coordinates from N-frame to R-frame
+def toRframe(qp):  # Convert coordinates from NR-frame to R-frame
     OmegaCR = vc/CR # Define orbital frequency
-    # Transform into cylindrical coordinates
-    x = qp[:,0] *u.kpc
-    y = qp[:,1] *u.kpc
-    vx = qp[:,2] *u.km/u.s
-    vy = qp[:,3] *u.km/u.s
+    # Pull out cartesian non-rotating info
+    x = qp[:,0]
+    y = qp[:,1]
+    vx = qp[:,2]
+    vy = qp[:,3]
     t = T *u.yr
+    # Calculate polar rotating coordinates for position
     R = np.sqrt(x**2 + y**2)
-    phiR = np.arctan(y/x)
-    for i in xrange(0,np.shape(qp)[0]):
-        phiR[i] = findphiR(x[i],y[i],t[i])
+    phi = np.arctan2(y,x)*u.rad
+    phiR= phi - (t*OmegaCR).decompose() *u.rad
     xR = R *np.cos(phiR)
     yR = R *np.sin(phiR)
-    vphiR = np.abs(vy *np.cos(np.arctan(y/x))) + np.abs(vx *np.sin(np.arctan(y/x)))
-    vxR = vphiR *np.cos(phiR)
-    vyR = vphiR *np.sin(phiR)
-
-    xR = (xR/u.kpc).decompose()
-    yR = (yR/u.kpc).decompose()
-    vxR = (vxR /u.km*u.s).decompose()
-    vyR = (vyR /u.km*u.s).decompose()
-    R = (R/u.kpc).decompose()
-    vphiR = (vphiR/u.km*u.s).decompose()
-    qpR = np.transpose(np.array([xR,yR,vxR,vyR,R,vphiR]))
+    # Calculate polar rotating coordinates for velocity
+    v_tot = np.sqrt(vx**2 + vy**2)
+    theta = np.arctan2(vy,vx)*u.rad #angle between velocity vector and x-axis
+    alph = phi - theta # angle between position and velocity vectors
+    vr = v_tot*np.cos(alph)
+    vphi = -v_tot*np.sin(alph)
+    vphiR = vphi - ((OmegaCR*R*u.kpc)/(u.km/u.s))
+    vxR = vr *np.cos(phiR) + vphiR*np.sin(phiR)
+    vyR = vr *np.sin(phiR) + vphiR*np.cos(phiR)
+    # Put it all back into a new array for rotating frame
+    qpR = np.transpose(np.array([xR,yR,vxR,vyR,vr,vphi,vphiR]))
     return qpR
 
 
 
-x0 = 7.6 # Must use implicit units of kpc
+x0 = 7. # Must use implicit units of kpc
 y0 = 0. # Must use implicit units of kpc
-vx0 = -2.5 # Must use implicit units of km/s
-vy0 = 223. # Must use implicit units of km/s
+vx0 = 3. # Must use implicit units of km/s
+vy0 = 230. # Must use implicit units of km/s
 qp0 = np.array([x0,y0,vx0,vy0])
 qp = makeorbit(qp0)
 qpR = toRframe(qp)
 
-'''
-plt.xlabel(r'$x$ (kpc)')
-plt.ylabel(r'$y$ (kpc)')
-plt.axis([-10,10,-10,10])
-plt.plot(qp[:,0],qp[:,1], color="SlateBlue")
-plt.show()
-'''
 
 plt.close('all') #close old plots still up
+
 
 fig=plt.figure(1) #setting up the basic figure with axes and labels
 ax=fig.add_subplot(1,1,1)
@@ -173,15 +156,15 @@ plt.xlabel(r'$x$ (kpc)')
 plt.ylabel(r'$y$ (kpc)')
 plt.axis([-10,10,-10,10])
 
-plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue", markevery=500, marker='+', ms=10) 
+plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
 #plotting the stellar path, markers at (markerevery*StepTime) time, e.g. 10^7
 plt.plot(qpR[:,0][0], qpR[:,1][0], 'g*', markersize='9') #plotting the start of the stellar path
 circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False) #plotting CR radius
-linblad1 = plt.Circle((0,0), (CR/u.kpc)*0.8, color='r', fill=False, ls='dashed')
-linblad2 = plt.Circle((0,0), (CR/u.kpc)*1.2, color='r', fill=False, ls='dashed')
+#linblad1 = plt.Circle((0,0), (CR/u.kpc)*0.8, color='r', fill=False, ls='dashed')
+#linblad2 = plt.Circle((0,0), (CR/u.kpc)*1.2, color='r', fill=False, ls='dashed')
 ax.add_patch(circ)
-ax.add_patch(linblad1)
-ax.add_patch(linblad2)
+#ax.add_patch(linblad1)
+#ax.add_patch(linblad2)
 plt.show()
 
 duration = default_timer() - start
