@@ -1,11 +1,9 @@
 import astropy.units as u
 import astropy.constants as const
 import numpy as np
-from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from timeit import default_timer
-import datetime
 start = default_timer()
 
 #########################
@@ -45,10 +43,11 @@ RetardingConstant = 0.0001*NSteps #Animation related stuff
  
 ### Spiral paremeters 
 # You can toggle these  
-m = 4.
+m = 4
 theta = 25. *u.degree
 CR = 8. *u.kpc
-epsilon = 0.3
+epsilon = 0.4
+OmegaCR = vc/CR # Define orbital frequency
 
 
 
@@ -57,14 +56,14 @@ def findalpha(m,theta): # Calculated parameter alpha
     alpha = m/np.tan(theta)
     return alpha
 
-def findA(CR,epsilon,alpha): # Calculated amplitude of spiral perturbation
-    SigmaCR = findSurfaceDensity(CR)
-    A = 2. *pi *G *SigmaCR*epsilon*CR/alpha
+def findA(x,y,epsilon,alpha): # Calculated amplitude of spiral perturbation
+    R = np.sqrt(x**2 + y**2)
+    SigmaCR = findSurfaceDensity(R)
+    A = 2. *pi *G *SigmaCR*epsilon*R/alpha
     return A
 
 # Use functions to define spiral parameters
 alpha = findalpha(m,theta)
-A = findA(CR,epsilon,alpha)
 
 #############
 # Orbital Integrator
@@ -73,14 +72,15 @@ A = findA(CR,epsilon,alpha)
 def dvdt(qp,tnow): # Finds the accelleration in this potential at coordinate x-y
     x = qp[0] *u.kpc
     y = qp[1] *u.kpc
+    A = findA(x,y,epsilon,alpha)
     time = tnow *u.yr # Note: If you change units, be sure to also change in makeorbit 
     # Find acceleration from logarithmic disk
     dvxD = vc**2 *x/(x**2 + y**2)
     dvyD = vc**2 *y/(x**2 + y**2)
     # Find acceleration from spiral
-    dvSFront = -A *np.sin(m *time *vc /CR*u.rad -m *np.arctan(y/x) -alpha *np.log( np.sqrt( x**2+y**2)/CR)*u.rad)/(x**2 +y**2)
-    dvxS = dvSFront *(m*y - alpha*x)
-    dvyS = -dvSFront *(m*x + alpha*y)
+    dvSFront = -A *np.sin((m *time *vc /CR)*u.rad -m *np.arctan(y/x) -alpha *np.log( np.sqrt( x**2+y**2)/CR)*u.rad)/(x**2 +y**2)
+    dvxS = dvSFront *(m*y + (-alpha-(1-np.sqrt(x**2+y**2)/Rd)*(np.tan((m *time *vc /CR)*u.rad -m *np.arctan(y/x) -alpha *np.log( np.sqrt( x**2+y**2)/CR)*u.rad)**-1))*x)
+    dvyS = dvSFront *(-m*x + (-alpha-(1-np.sqrt(x**2+y**2)/Rd)*(np.tan((m *time *vc /CR)*u.rad -m *np.arctan(y/x) -alpha *np.log( np.sqrt( x**2+y**2)/CR)*u.rad)**-1))*y)
     # Find total acceleration
     dvxdt = ((dvxD + dvxS)/(u.km /u.s**2))
     dvydt = ((dvyD + dvyS)/(u.km /u.s**2))
@@ -103,12 +103,37 @@ def leapstep(qpnow,tnow): # A single leapstep (t+dt), using kick-drift-kick meth
     a  =dvdt(qpmid,tnow) # Find a at new position and complete the velocity step
     vx = vx -0.5 *dt *a[0] # Complete v_x step
     vy = vy -0.5 *dt *a[1] # Complete v_y step
-    qpnew = np.array([x,y,vx,vy]) 
+    qpnew = np.array([x,y,vx,vy,tnow]) 
     return qpnew
     
+### Finding various theoretical properties
+
+def findEj(qp_part):
+    #pulling info
+    x = qp_part[:,0]*u.kpc
+    y = qp_part[:,1]*u.kpc
+    vx = qp_part[:,2]*u.km/u.s
+    vy = qp_part[:,3]*u.km/u.s
+    t = qp_part[:,4]*u.yr
+    R = np.sqrt((x**2)+(y**2))
+    phi = np.arctan2(y,x)
+    #finding disk potential
+    disk_potential = (vc**2)*np.log(R/u.kpc)
+    #finding spiral potential
+    SigmaR = findSurfaceDensity(R)
+    A_r = 2. *pi *G *SigmaR*epsilon*R/alpha
+    spiral_potential = A_r.to((u.km/u.s)**2)*np.cos(-alpha*np.log(R/CR)*u.rad + (m*vc*t/CR)*u.rad -m*phi)
+    #calculating potential, then energy, then Ej
+    potential = disk_potential + spiral_potential
+    E_tot = potential + 0.5*(vx**2 + vy**2)
+    L_z = R*-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))
+    E_j = E_tot - OmegaCR*L_z
+    return np.array([E_j, L_z, E_tot]) #implicit units of (km/s)**2
+
+
 def makeorbit(qp0):
-    qp = np.zeros(shape=(len(T),4))
-    qp[0] = qp0
+    qp = np.zeros(shape=(len(T),5))
+    qp[0] = np.append(qp0,[0])
     print NSteps
     for i in range(len(T)):
         qpstep = leapstep(qp0,T[i])
@@ -118,7 +143,6 @@ def makeorbit(qp0):
 
 
 def toRframe(qp):  # Convert coordinates from NR-frame to R-frame
-    OmegaCR = vc/CR # Define orbital frequency
     # Pull out cartesian non-rotating info
     x = qp[:,0]
     y = qp[:,1]
@@ -152,12 +176,20 @@ def plotArms():
     for i in xrange(0,m):
     
         radius = (CR/u.kpc)*np.exp((-m*(t) +np.pi)/alpha)
-        ax.plot(radius*np.cos(t+2*np.pi*i/m),radius*np.sin(t+2*np.pi*i/m), color="purple",ls='dotted')
+        ax.plot(radius*np.cos(t+2*np.pi*i/m),radius*np.sin(t+2*np.pi*i/m), color="purple",ls='dashed', lw='2.')
   
     return None
 
+####Lindlbad Resonance stuff
+#for the first resonances
+R_1o = (m+np.sqrt(2))*vc/(m*OmegaCR)
+R_1i = (m-np.sqrt(2))*vc/(m*OmegaCR)
+#for the ultraharmonic resonances
+R_2o = ((2*m)+np.sqrt(2))*vc/((2*m)*OmegaCR)
+R_2i = ((2*m)-np.sqrt(2))*vc/((2*m)*OmegaCR)
 
-x0 = 7. # Must use implicit units of kpc
+
+x0 = 7.8 # Must use implicit units of kpc
 y0 = 0. # Must use implicit units of kpc
 vx0 = 3. # Must use implicit units of km/s
 vy0 = 230. # Must use implicit units of km/s
@@ -175,8 +207,23 @@ plt.xlabel(r'$x$ (kpc)')
 plt.ylabel(r'$y$ (kpc)')
 plt.axis([-13,13,-13,13])
 
-circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False,ls = 'dashed') #plotting CR radius
+circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False) #plotting CR radius
 ax.add_patch(circ)
+
+lind1 = plt.Circle((0,0), (R_1o/u.kpc), color='g', fill=False,ls = 'dashed')
+lind2 = plt.Circle((0,0), (R_1i/u.kpc), color='g', fill=False,ls = 'dashed')
+lind1uh = plt.Circle((0,0), (R_2o/u.kpc), color='g', fill=False,ls = 'dotted')
+lind2uh = plt.Circle((0,0), (R_2i/u.kpc), color='g', fill=False,ls = 'dotted')
+ax.add_patch(lind1)
+ax.add_patch(lind2)
+ax.add_patch(lind1uh)
+ax.add_patch(lind2uh)
+
+plt.plot(qpR[:,0][0], qpR[:,1][0], 'g*', markersize='9') #plotting the start of the stellar path
+plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
+#plotting the stellar path, markers at (markerevery*StepTime) time, e.g. 10^7
+
+plotArms()
 
 '''
 #Animation Stuff
@@ -197,10 +244,6 @@ anim = animation.FuncAnimation(fig, animate, frames=int(NSteps/RetardingConstant
 ###############################################################################
 plotArms()
 '''
-
-plt.plot(qpR[:,0][0], qpR[:,1][0], 'g*', markersize='9') #plotting the start of the stellar path
-plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
-#plotting the stellar path, markers at (markerevery*StepTime) time, e.g. 10^7
 
 plt.show()
 
