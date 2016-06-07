@@ -18,7 +18,7 @@ The arguments are respectively:
 4: epsilon of spiral
 5,6,7,8: x0,y0,vx0,vy0 (implicit units of kpc and km/s respectively)
 '''
-orbit = Orbit_Calculator(4,.01,8,.4,7.8,0.,3.,230.) 
+orbit = Orbit_Calculator(4,.5,8,.4,7.8,0.,3.,230.) 
 
 '''
 Calculate the orbit. Once you've calculated the orbit, there is no need to 
@@ -31,7 +31,7 @@ Plot the orbit in the non-rotating or rotating frame. The plot method takes an
 argument of 0 to plot the star's orbit in the non-rotating frame and anything else for 
 the rotating frame.
 '''
-orbit.plot(0) 
+orbit.plot(1) 
 
 '''
 To plot the orbit in the rotating frame, it is not necessary to redo the 

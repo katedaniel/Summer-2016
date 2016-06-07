@@ -101,7 +101,6 @@ class Orbit_Calculator(object):
         
 # Calculates amplitude of spiral perturbation
     def __findA(self,x,y): 
-        global A
         R = np.sqrt(x**2 + y**2)
         Sigma = self.__findSurfaceDensity(R)
         A = 2. *pi *G *Sigma*epsilon*R/alpha
@@ -116,17 +115,20 @@ class Orbit_Calculator(object):
         
         x = qp[0] *u.kpc
         y = qp[1] *u.kpc
-        A = self.__findA(x,y)
         time = tnow *u.yr
+        A = self.__findA(x,y)
+        R = (x**2 + y**2)
         
         # Find acceleration from logarithmic disk
-        dvxD = vc**2 *x/(x**2 + y**2)
-        dvyD = vc**2 *y/(x**2 + y**2)
+        dvxD = vc**2 *x/R
+        dvyD = vc**2 *y/R
         
         # Find acceleration from spiral
-        dvSFront = -A *np.sin((m *time *vc /CR)*u.rad -m *np.arctan(y/x) -alpha *np.log(np.sqrt( x**2+y**2)/CR)*u.rad)/(x**2 +y**2)
-        dvxS = dvSFront *(m*y + (-alpha-(1-np.sqrt(x**2+y**2)/Rd)*(np.tan((m *time *vc /CR)*u.rad -m *np.arctan(y/x) -alpha *np.log( np.sqrt( x**2+y**2)/CR)*u.rad)**-1))*x)
-        dvyS = dvSFront *(-m*x + (-alpha-(1-np.sqrt(x**2+y**2)/Rd)*(np.tan((m *time *vc /CR)*u.rad -m *np.arctan(y/x) -alpha *np.log( np.sqrt( x**2+y**2)/CR)*u.rad)**-1))*y)
+        var1 = (m *time *vc /CR)*u.rad -m *np.arctan(y/x) -alpha *np.log(np.sqrt(R)/CR)*u.rad
+        var2 = (-alpha-(1-np.sqrt(R)/Rd)*(np.tan(var1)**-1))
+        dvSFront = -A *np.sin(var1)/(R)
+        dvxS = dvSFront *(m*y + var2*x)
+        dvyS = dvSFront *(-m*x + var2*y)
     
         # Find total acceleration
         dvxdt = ((dvxD + dvxS)/(u.km /u.s**2))
@@ -155,8 +157,7 @@ class Orbit_Calculator(object):
         vx = vx -0.5 *dt *a[0]           # Complete v_x step
         vy = vy -0.5 *dt *a[1]           # Complete v_y step
         
-        qpnew = np.array([x,y,vx,vy,tnow]) 
-        return qpnew
+        return np.array([x,y,vx,vy,tnow]) 
         
 # Helper function to plot the spiral arms, arm points calcualted in polar 
 # coordiantes and then converted to rectangular for plotting  
@@ -214,9 +215,8 @@ class Orbit_Calculator(object):
         qp[0] = qp0
         print "Steps: %s" %str(NSteps)
         for i in range(len(T)):
-            qpstep = self.__leapstep(qp0,T[i])
+            qpstep = qp0 = self.__leapstep(qp0,T[i])
             qp[i] = qpstep
-            qp0 = qpstep
             
         global qpR
         qpR =  self.__toRframe(qp) 
@@ -257,6 +257,7 @@ class Orbit_Calculator(object):
         ax.set_xlabel(r'$x$ (kpc)')
         ax.set_ylabel(r'$y$ (kpc)')
         plt.axis([-13,13,-13,13])
+        plt.axes().set_aspect('equal', 'datalim')
         
         #Lindlbad Resonance stuff
         R_1o = (m+np.sqrt(2))*vc/(m*OmegaCR)
@@ -310,3 +311,29 @@ class Orbit_Calculator(object):
         L_z = R*-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))
         E_j = E_tot - OmegaCR*L_z
         return np.array([E_j, L_z, E_tot]) #implicit units of (km/s)**2
+        
+        
+    def Capture(self):
+        #pulling some constants
+        Ej = self.findEj()
+        A_CR = self.__findA(CR,0.*u.kpc).to((u.km/u.s)**2)
+        #pulling info out of qp
+        x = qp[:,0]*u.kpc
+        y = qp[:,1]*u.kpc
+        vx = qp[:,2]*u.km/u.s
+        vy = qp[:,3]*u.km/u.s
+        #finding hcr
+        disk_potential = (vc**2)*np.log(CR/u.kpc)
+        E_tot = disk_potential + 0.5*(vx**2 + vy**2)
+        L_z = CR*-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))
+        h_cr = (E_tot - OmegaCR*L_z)/((u.km/u.s)**2)
+        #finding Rg
+        R_g = np.sqrt(x**2 + y**2)*-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))/vc
+        #finding E_random
+        E_ran = 0.5*((np.sqrt(vx**2 + vy**2)*np.cos(np.arctan2(y,x) - np.arctan2(vy,vx)))**2 + (-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))-vc)**2)
+        #finding Lambda_c
+        Lam_c = np.subtract(Ej,h_cr)/(A_CR/((u.km/u.s)**2))
+        #finding Lambda_nc,2
+        Lam_nc2_g = np.subtract(Lam_c,((R_g/CR)*(E_ran/A_CR)))#guiding center
+        Lam_nc2_s = np.subtract(Lam_c,((np.sqrt(x**2 + y**2)/CR)*(E_ran/A_CR)))#star
+        return np.array([Lam_nc2_g[0],Lam_nc2_s[0]])
