@@ -4,9 +4,15 @@ If you ever make any changes to the Orbit_Calculator class, make sure to
 restart the kernel so the changes will be implemented.
 ''' 
 
-#Start by importing the Orbit_Calculator class from the file Orbit_Calculator
+'''
+Start by importing the Orbit_Calculator class from the file Orbit_Calculator.
+Once it has been imported, type help(Orbit_Calculator) to get a summary of the 
+class's attributes and methods. See the command line for the class summary 
+provided by the help() function. Note that this help step is not necessary, merely
+helpful when using this class at the beginning.
+'''
 from Orbit_Calculator import Orbit_Calculator
-
+help(Orbit_Calculator)
 '''
 Instantiate an Orbit_Calculator object with the appropriate parameters. The 
 instance of our Orbit_Calculator will be called "orbit"
@@ -18,11 +24,12 @@ The arguments are respectively:
 4: epsilon of spiral
 5,6,7,8: x0,y0,vx0,vy0 (implicit units of kpc and km/s respectively)
 '''
-orbit = Orbit_Calculator(4,.5,8,.4,7.8,0.,3.,230.) 
+orbit = Orbit_Calculator(4,.001,8,.4,7.8,0.,3.,230.) 
 
 '''
 Calculate the orbit. Once you've calculated the orbit, there is no need to 
-recalculate it unless you want to run a simulation with different parameters
+recalculate it unless you want to run a simulation with different parameters.
+Note that makeOrbit() must 
 '''
 orbit.makeOrbit() 
 
