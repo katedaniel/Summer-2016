@@ -401,3 +401,13 @@ class Orbit_Calculator(object):
         Lam_nc2_g = np.subtract(Lam_c,((R_g/CR)*(E_ran/A_CR)))#guiding center
         Lam_nc2_s = np.subtract(Lam_c,((np.sqrt(x**2 + y**2)/CR)*(E_ran/A_CR)))#star
         return np.array(Lam_nc2_g[0])
+        
+    def findRg(self):
+      
+        #pulling info out of qp
+        x = qp[:,0]*u.kpc
+        y = qp[:,1]*u.kpc
+        vx = qp[:,2]*u.km/u.s
+        vy = qp[:,3]*u.km/u.s
+        R_g = np.sqrt(x**2 + y**2)*-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))/vc
+        return R_g
