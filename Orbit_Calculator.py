@@ -292,12 +292,12 @@ class Orbit_Calculator(object):
         x_range = arange(-13.0, 13.0, delta)
         y_range = arange(-13.0, 13.0, delta)
         X, Y = meshgrid(x_range,y_range)
-        R = np.sqrt(X**2 + Y**2)
+        R = np.sqrt((X**2) + (Y**2))
         phi = np.arctan2(Y,X)
         #find Phi_eff_min
         A_CR = self.__findA(CR,0.*u.kpc).to((u.km/u.s)**2)
-        phi_min = (hcr - np.absolute(A_CR))/((u.km/u.s)**2)
-        phi_max = (hcr + np.absolute(A_CR))/((u.km/u.s)**2)
+        phi_min = (hcr - A_CR)/((u.km/u.s)**2)
+        phi_max = (hcr + A_CR)/((u.km/u.s)**2)
         #defining the contour equation
         A = self.__findA(X*u.kpc,Y*u.kpc).to((u.km/u.s)**2)
         spiral_potential = A*np.cos(-alpha*np.log(R*u.kpc/CR)*u.rad -m*phi*u.rad)
@@ -356,7 +356,7 @@ class Orbit_Calculator(object):
         Ej__ = self.findEj()
         Ej_ = Ej__[0]
         Ej = Ej_[0]
-        A_CR = self.__findA(0.*u.kpc,CR).to((u.km/u.s)**2)
+        A_CR = self.__findA(CR,0.*u.kpc).to((u.km/u.s)**2)
         #finding Rg
         R_g = R*-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))/vc
         #finding E_random
