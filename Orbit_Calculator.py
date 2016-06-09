@@ -3,6 +3,8 @@ import astropy.constants as const
 import numpy as np
 import matplotlib.pyplot as plt
 from timeit import default_timer
+from numpy import arange
+from numpy import meshgrid
 
 ###############################################################
 # Defining some constants
@@ -105,6 +107,14 @@ class Orbit_Calculator(object):
         Sigma = self.__findSurfaceDensity(R)
         A = 2. *pi *G *Sigma*epsilon*R/alpha
         return A
+    
+# Calculates hcr, Jacobi integral for a star at corotation with no spirals
+    def __findhcr(self):
+        disk_potential = (vc**2)*np.log(CR/u.kpc)
+        E_tot = disk_potential + 0.5*(vc**2)
+        L_z = CR*vc
+        global hcr
+        hcr = (E_tot - OmegaCR*L_z) #units of (km/s)^2
          
 ###############################################################
 #Private Calculation Methods
@@ -208,6 +218,7 @@ class Orbit_Calculator(object):
         
         start = default_timer()
         self.__findalpha()
+        self.__findhcr()
     
         qp0 = np.array([x0,y0,vx0,vy0,T[0]])
         global qp
@@ -238,7 +249,7 @@ class Orbit_Calculator(object):
     
         filename = "qp_(m=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
         str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
-        np.save("/Users/LBarbano/Desktop/QP_Dump/%s" % filename,qp) 
+        np.save("C:\Summer_2016\qp_file\%s" % filename,qp) 
         
 # Plots the orbit  
 # For plot of orbit in non-rotating frame, enter 0 as the plot option
@@ -275,6 +286,27 @@ class Orbit_Calculator(object):
         ax.add_patch(lind1uh)
         ax.add_patch(lind2uh)
         
+        ###Plot capture area
+        #set up contour plot
+        delta = 0.025
+        x_range = arange(-13.0, 13.0, delta)
+        y_range = arange(-13.0, 13.0, delta)
+        X, Y = meshgrid(x_range,y_range)
+        R = np.sqrt(X**2 + Y**2)
+        phi = np.arctan2(Y,X)
+        #find Phi_eff_min
+        A_CR = self.__findA(CR,0.*u.kpc).to((u.km/u.s)**2)
+        phi_min = (hcr - np.absolute(A_CR))/((u.km/u.s)**2)
+        phi_max = (hcr + np.absolute(A_CR))/((u.km/u.s)**2)
+        #defining the contour equation
+        A = self.__findA(X*u.kpc,Y*u.kpc).to((u.km/u.s)**2)
+        spiral_potential = A*np.cos(-alpha*np.log(R*u.kpc/CR)*u.rad -m*phi*u.rad)
+        disk_potential = (vc**2)*np.log(R)
+        potential = spiral_potential + disk_potential
+        func = (0.5*(OmegaCR**2)*(CR**2) - (OmegaCR**2)*CR*(R*u.kpc) + potential)/((u.km/u.s)**2)
+        #plotting contour
+        plt.contourf(X,Y,func,[phi_min,phi_max],colors='gray',alpha=0.3)
+        
         #Plot corotation radius
         circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False) #plotting CR radius
         ax.add_patch(circ)
@@ -302,9 +334,8 @@ class Orbit_Calculator(object):
         #finding disk potential
         disk_potential = (vc**2)*np.log(R/u.kpc)
         #finding spiral potential
-        SigmaR = self.__findSurfaceDensity(CR)
-        A_r = 2. *pi *G *SigmaR*epsilon*CR/alpha
-        spiral_potential = A_r.to((u.km/u.s)**2)*np.cos(-alpha*np.log(R/CR)*u.rad + (m*vc*t/CR)*u.rad -m*phi)
+        A = self.__findA(x,y).to((u.km/u.s)**2)
+        spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad + (m*OmegaCR*t)*u.rad -m*phi)
         #calculating potential, then energy, then Ej
         potential = disk_potential + spiral_potential
         E_tot = potential + 0.5*(vx**2 + vy**2)
@@ -314,26 +345,24 @@ class Orbit_Calculator(object):
         
         
     def Capture(self):
-        #pulling some constants
-        Ej = self.findEj()
-        A_CR = self.__findA(CR,0.*u.kpc).to((u.km/u.s)**2)
         #pulling info out of qp
         x = qp[:,0]*u.kpc
         y = qp[:,1]*u.kpc
         vx = qp[:,2]*u.km/u.s
         vy = qp[:,3]*u.km/u.s
-        #finding hcr
-        disk_potential = (vc**2)*np.log(CR/u.kpc)
-        E_tot = disk_potential + 0.5*(vx**2 + vy**2)
-        L_z = CR*-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))
-        h_cr = (E_tot - OmegaCR*L_z)/((u.km/u.s)**2)
+        R = np.sqrt(x**2 + y**2)
+        phi = np.arctan2(y,x)
+        #pulling some constants
+        Ej__ = self.findEj()
+        Ej_ = Ej__[0]
+        Ej = Ej_[0]
+        A_CR = self.__findA(0.*u.kpc,CR).to((u.km/u.s)**2)
         #finding Rg
-        R_g = np.sqrt(x**2 + y**2)*-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))/vc
+        R_g = R*-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))/vc
         #finding E_random
-        E_ran = 0.5*((np.sqrt(vx**2 + vy**2)*np.cos(np.arctan2(y,x) - np.arctan2(vy,vx)))**2 + (-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))-vc)**2)
+        E_ran = 0.5*((np.sqrt(vx**2 + vy**2)*np.cos(phi - np.arctan2(vy,vx)))**2 + (-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))-vc)**2)
         #finding Lambda_c
-        Lam_c = np.subtract(Ej,h_cr)/(A_CR/((u.km/u.s)**2))
+        Lam_c = (Ej - hcr/((u.km/u.s)**2))/(A_CR/((u.km/u.s)**2))
         #finding Lambda_nc,2
-        Lam_nc2_g = np.subtract(Lam_c,((R_g/CR)*(E_ran/A_CR)))#guiding center
-        Lam_nc2_s = np.subtract(Lam_c,((np.sqrt(x**2 + y**2)/CR)*(E_ran/A_CR)))#star
-        return np.array([Lam_nc2_g[0],Lam_nc2_s[0]])
+        Lam_nc2 = Lam_c - ((R_g/CR)*(E_ran/A_CR))
+        return np.array(Lam_nc2)
