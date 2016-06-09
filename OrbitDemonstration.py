@@ -61,7 +61,7 @@ b = orbit.getqpR()
 Now we can save the data in the non-rotating frame to our dump folder by using the 
 saveData method.
 '''
-orbit.saveData()
+#orbit.saveData()
 
 '''
 Finally, we can do all of these things simply with the method doAllThings()
