@@ -123,6 +123,7 @@ class Orbit_Calculator(object):
         m = m1
         IntTime = IntTime1*u.Gyr
         CR = CR1*u.kpc
+        print CR
         epsilon = epsilon1
         x0 = x01
         y0 = y01
@@ -161,7 +162,6 @@ class Orbit_Calculator(object):
         
         global alpha
         alpha = m/np.tan(theta)
-        return alpha
         
 # Calculates amplitude of spiral perturbation
     def __findA(self,x,y): 
