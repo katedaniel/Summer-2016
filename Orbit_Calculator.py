@@ -102,8 +102,7 @@ class Orbit_Calculator(object):
         return alpha
         
 # Calculates amplitude of spiral perturbation
-    def __findA(self,x,y): 
-        R = np.sqrt(x**2 + y**2)
+    def __findA(self,R): 
         Sigma = self.__findSurfaceDensity(R)
         A = 2. *pi *G *Sigma*epsilon*R/alpha
         return A
@@ -126,8 +125,9 @@ class Orbit_Calculator(object):
         x = qp[0] *u.kpc
         y = qp[1] *u.kpc
         time = tnow *u.yr
-        A = self.__findA(x,y)
         R = (x**2 + y**2)
+        A = self.__findA(np.sqrt(R))
+        
         
         # Find acceleration from logarithmic disk
         dvxD = vc**2 *x/R
@@ -219,7 +219,7 @@ class Orbit_Calculator(object):
         start = default_timer()
         self.__findalpha()
         self.__findhcr()
-    
+        
         qp0 = np.array([x0,y0,vx0,vy0,T[0]])
         global qp
         qp = np.zeros(shape=(len(T),5))
@@ -295,11 +295,11 @@ class Orbit_Calculator(object):
         R = np.sqrt((X**2) + (Y**2))
         phi = np.arctan2(Y,X)
         #find Phi_eff_min
-        A_CR = self.__findA(CR,0.*u.kpc).to((u.km/u.s)**2)
+        A_CR = self.__findA(CR).to((u.km/u.s)**2)
         phi_min = (hcr - A_CR)/((u.km/u.s)**2)
         phi_max = (hcr + A_CR)/((u.km/u.s)**2)
         #defining the contour equation
-        A = self.__findA(X*u.kpc,Y*u.kpc).to((u.km/u.s)**2)
+        A = self.__findA(R*u.kpc).to((u.km/u.s)**2)
         spiral_potential = A*np.cos(-alpha*np.log(R*u.kpc/CR)*u.rad -m*phi*u.rad)
         disk_potential = (vc**2)*np.log(R)
         potential = spiral_potential + disk_potential
@@ -334,7 +334,7 @@ class Orbit_Calculator(object):
         #finding disk potential
         disk_potential = (vc**2)*np.log(R/u.kpc)
         #finding spiral potential
-        A = self.__findA(x,y).to((u.km/u.s)**2)
+        A = self.__findA(R).to((u.km/u.s)**2)
         spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad + (m*OmegaCR*t)*u.rad -m*phi)
         #calculating potential, then energy, then Ej
         potential = disk_potential + spiral_potential
@@ -356,7 +356,7 @@ class Orbit_Calculator(object):
         Ej__ = self.findEj()
         Ej_ = Ej__[0]
         Ej = Ej_[0]
-        A_CR = self.__findA(CR,0.*u.kpc).to((u.km/u.s)**2)
+        A_CR = self.__findA(CR).to((u.km/u.s)**2)
         #finding Rg
         R_g = R*-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))/vc
         #finding E_random
