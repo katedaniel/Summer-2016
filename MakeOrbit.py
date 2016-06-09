@@ -3,6 +3,7 @@ import astropy.constants as const
 import numpy as np
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
+from matplotlib import animation
 from timeit import default_timer
 start = default_timer()
 
@@ -37,13 +38,15 @@ StepTime = 100000. *u.yr # Time between each calculation
 IntTimeUnitless = (IntTime /u.yr).decompose()
 NSteps = np.rint( (IntTime / StepTime).decompose() ) # Intiger number of total steps to take
 T = np.linspace(0,IntTimeUnitless,NSteps)
+
+RetardingConstant = 10 #Animation related stuff
  
 ### Spiral paremeters 
 # You can toggle these  
 m = 4
 theta = 25 *u.degree
 CR = 8 *u.kpc
-epsilon = 0.4
+epsilon = 0.3
 
 # Functions that define spiral parameters
 def findalpha(m,theta): # Calculated parameter alpha
@@ -158,30 +161,37 @@ qp0 = np.array([x0,y0,vx0,vy0])
 qp = makeorbit(qp0)
 qpR = toRframe(qp)
 
-'''
-plt.xlabel(r'$x$ (kpc)')
-plt.ylabel(r'$y$ (kpc)')
-plt.axis([-10,10,-10,10])
-plt.plot(qp[:,0],qp[:,1], color="SlateBlue")
-plt.show()
-'''
 
 plt.close('all') #close old plots still up
 
-fig=plt.figure(1) #setting up the basic figure with axes and labels
-ax=fig.add_subplot(1,1,1)
+fig = plt.figure(1) #setting up the basic figure with axes and labels
+ax = fig.add_subplot(1,1,1)
 plt.xlabel(r'$x$ (kpc)')
 plt.ylabel(r'$y$ (kpc)')
 plt.axis([-10,10,-10,10])
 
-plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue") #plotting the stellar path
-plt.plot(qpR[:,0][0], qpR[:,1][0], 'g*', markersize='12') #plotting the start of the stellar path
+plt.plot(qp[:,0],qp[:,1], color="SlateBlue",ls='dotted') #plotting stellar path, NR frame
+plt.plot(qpR[:,0],qpR[:,1], color="red",ls='dotted') #plotting the stellar path, R frame
+#plt.plot(qpR[:,0][0], qpR[:,1][0], 'g*', markersize='12') #plotting the start of the stellar path
 circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False) #plotting CR radius
-linblad1 = plt.Circle((0,0), (CR/u.kpc)*0.8, color='r', fill=False, ls='dashed')
-linblad2 = plt.Circle((0,0), (CR/u.kpc)*1.2, color='r', fill=False, ls='dashed')
+#linblad1 = plt.Circle((0,0), (CR/u.kpc)*0.8, color='r', fill=False, ls='dashed')
+#linblad2 = plt.Circle((0,0), (CR/u.kpc)*1.2, color='r', fill=False, ls='dashed')
 ax.add_patch(circ)
-ax.add_patch(linblad1)
-ax.add_patch(linblad2)
+#ax.add_patch(linblad1)
+#ax.add_patch(linblad2)
+
+
+d, = ax.plot(qp[0,0],qp[0,1], 'bo') #Draw initial location of star
+s, = ax.plot(qpR[0,0],qpR[0,1], 'ro') #Draw initial location of star
+
+# animation function.  This is called sequentially
+def animate(i):
+    d.set_data(qp[RetardingConstant*i,0],qp[RetardingConstant*i,1])
+    s.set_data(qpR[RetardingConstant*i,0],qpR[RetardingConstant*i,1])
+    return d,s
+# call the animator.  blit=True means only re-draw the parts that have changed.
+anim = animation.FuncAnimation(fig, animate, frames=int(NSteps/RetardingConstant), interval=0.05)
+
 plt.show()
 
 duration = default_timer() - start

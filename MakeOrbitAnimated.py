@@ -6,7 +6,6 @@ from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from timeit import default_timer
-import datetime
 start = default_timer()
 
 #########################
@@ -34,11 +33,10 @@ def findSurfaceDensity(R): # Calculats the surface density of the disk at any ra
     return SigmaR
 
 ### Some time dependent things you can toggle
-IntTime = 0.01 *u.Gyr # Total time over which to integrate
+IntTime = 0.5 *u.Gyr # Total time over which to integrate
 StepTime = 100000. *u.yr # Time between each calculation
-# DON'T TOUCH the next three lines. They make the time series
 
-orbits = Orbit_Calculator(IntTime)
+# DON'T TOUCH the next three lines. They make the time series
 IntTimeUnitless = (IntTime /u.yr).decompose()
 NSteps = np.rint( (IntTime / StepTime).decompose() ) # Intiger number of total steps to take
 T = np.linspace(0,IntTimeUnitless,NSteps)
@@ -109,13 +107,12 @@ def leapstep(qpnow,tnow): # A single leapstep (t+dt), using kick-drift-kick meth
 def makeorbit(qp0):
     qp = np.zeros(shape=(len(T),4))
     qp[0] = qp0
-    print NSteps
+    print "Steps: %s" %str(NSteps)
     for i in range(len(T)):
         qpstep = leapstep(qp0,T[i])
         qp[i] = qpstep
         qp0 = qpstep
     return qp
-
 
 def toRframe(qp):  # Convert coordinates from NR-frame to R-frame
     OmegaCR = vc/CR # Define orbital frequency
@@ -145,15 +142,12 @@ def toRframe(qp):  # Convert coordinates from NR-frame to R-frame
     return qpR
 
 def plotArms():
-    points = 100
+    points = 20
     radius = np.zeros(points)
-    t = np.linspace(0,np.pi/2)
-    
+    t = np.linspace(0,np.pi/2,points)
     for i in xrange(0,m):
-    
         radius = (CR/u.kpc)*np.exp((-m*(t) +np.pi)/alpha)
         ax.plot(radius*np.cos(t+2*np.pi*i/m),radius*np.sin(t+2*np.pi*i/m), color="purple",ls='dotted')
-  
     return None
     
 x0 = 7.6 # Must use implicit units of kpc
@@ -199,10 +193,10 @@ plotArms()
 plt.show()
 
 duration = default_timer() - start 
-print 'time:'
-print duration
+print "time: %s s" % str(duration)
 
-filename = "qp_(m=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)_(date=%s)" %(str(m),
-str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0),datetime.datetime.now().isoformat())
+
+filename = "qp_(m=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
+str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
 
 np.save("/Users/LBarbano/Desktop/QP_Dump/%s" % filename,qp)
