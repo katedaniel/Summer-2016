@@ -123,7 +123,6 @@ class Orbit_Calculator(object):
         m = m1
         IntTime = IntTime1*u.Gyr
         CR = CR1*u.kpc
-        print CR
         epsilon = epsilon1
         x0 = x01
         y0 = y01
@@ -296,6 +295,10 @@ class Orbit_Calculator(object):
     def getqpR(self):
         return qpR
 
+# Returns NSteps                 
+    def getNSteps(self):
+        return NSteps
+        
 # Saves data from non-rotating frame in dump file  
 # Remember that each computer has a different file path    
     def saveData(self):
@@ -306,13 +309,8 @@ class Orbit_Calculator(object):
         
 # Plots the orbit  
 # For plot of orbit in non-rotating frame, enter 0 as the plot option
-# For the plot in hte rotating frame, enter anything else        
+# For the plot in the rotating frame, enter anything else        
     def plot(self,plotOption):
-        
-        if plotOption==0:
-            qps = qp
-        else:
-            qps = qpR
         
         plt.close('all')         #close old plots still up
         
@@ -321,7 +319,7 @@ class Orbit_Calculator(object):
         ax.set_xlabel(r'$x$ (kpc)')
         ax.set_ylabel(r'$y$ (kpc)')
         plt.axis([-13,13,-13,13])
-        plt.axes().set_aspect('equal', 'datalim')
+        ax.set_aspect('equal', 'datalim')
         
         #Lindlbad Resonance stuff
         R_1o = (m+np.sqrt(2))*vc/(m*OmegaCR)
@@ -339,13 +337,25 @@ class Orbit_Calculator(object):
         ax.add_patch(lind1uh)
         ax.add_patch(lind2uh)
         
+        self.__plotArms(ax)
+        plt.show()
+        
         #Plot corotation radius
         circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False) #plotting CR radius
         ax.add_patch(circ)
-
+        
+        if plotOption==0:
+            qps = qp
+        elif plotOption==1:
+            qps = qpR
+        else:
+            return fig, ax
+        
         plt.plot(qps[:,0],qps[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
-        self.__plotArms(ax)
-        plt.show()
+        [Rgx,Rgy] = self.findRg()
+        plt.plot(Rgx,Rgy,color="black", markevery=500, marker='.', ms=8) 
+
+        return fig, ax
         
     def doAllThings(self):
             
@@ -401,7 +411,8 @@ class Orbit_Calculator(object):
         Lam_nc2_g = np.subtract(Lam_c,((R_g/CR)*(E_ran/A_CR)))#guiding center
         Lam_nc2_s = np.subtract(Lam_c,((np.sqrt(x**2 + y**2)/CR)*(E_ran/A_CR)))#star
         return np.array(Lam_nc2_g[0])
-        
+
+# Calculates position of guiding radius in rotating frame        
     def findRg(self):
       
         #pulling info out of qp
@@ -409,5 +420,11 @@ class Orbit_Calculator(object):
         y = qp[:,1]*u.kpc
         vx = qp[:,2]*u.km/u.s
         vy = qp[:,3]*u.km/u.s
-        R_g = np.sqrt(x**2 + y**2)*-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))/vc
-        return R_g
+        R_g = (np.sqrt(x**2 + y**2)*-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))/vc)
+        phi = np.arctan2(y,x)
+        t = T *u.yr
+        phiR= phi - (t*OmegaCR).decompose() *u.rad
+        xR = R_g *np.cos(phiR)
+        yR = R_g *np.sin(phiR)
+        return np.array([xR,yR])
+        
