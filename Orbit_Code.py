@@ -1,3 +1,69 @@
+'''
+Authors: Luke Barbano and Noah Lifset
+Description: 
+    This file implements the Orbit_Calculator class, which performs all of the 
+calculations associated with numerically simulating a star's orbit about the 
+center of a spiral galaxy and plots the results. 
+    The class takes in various parameters relating to the spiral as well as the 
+star's initial conditions. It can then calculate the positions of the star's 
+orbit for some time interval, plot the results in the non-rotating frame, 
+translate the positions to the rotating frame of the spiral, plot the orbit in 
+the rotating frame, and save the position/velocity information from the non-
+rotating frame to a dump file in a specified file path. The accompanying file 
+"OrbitDemonstration.py" provides a walkthrough of how to use this class.  
+    As an aside, this class is not super well written by computer science standards
+given its reliance on global variables in lieu of assigning attributes to the 
+instance of the class; however, this class implementation best salvaged the 
+previous version of the code and might be slightly faster since the self instance 
+of the class doesn't have to constanly access the many, frequently used variables. 
+Note: If any changes are made to the Orbit_Calculator class, make sure to restart the 
+kernel so the changes will be implemented when using the class.
+Class Summary:
+    
+--------------------------------------------------------------------------------
+class Orbit_Calculator(__builtin__.object)
+       
+Constructor:     
+     __init__(self, m, IntTime, CR, epsilon, x0, y0, vx0, vy0)
+        m = number of spiral arms
+        IntTime = Duration of simulation (units implicit gigayears)
+        CR = Corotation radius (units implicit kiloparsecs)
+        epsilon = epsilon of spiral
+        x0,y0,vx0,vy0 = intial x,y,vx,and vy of star (implicit units kpc and km/s respectively)
+    
+Public (Callable) Methods:
+    
+    --makeOrbit(self)
+        -calculates the orbit
+        -creates global numpy arrays for qp and qpR
+    --getqp(self)
+        -returns numpy array qp
+        
+    --getqpR(self)
+        -returns numpy array qpR        
+                       
+    --saveData(self)  
+        -save qp to a file in a designated filepath 
+        
+    --plot(self, plotOption)
+        -plots the orbit
+        -if plotOption == 0, plots in the non-rotating frame
+        -if plotOption is anything but 0, plots in the rotating frame
+         
+    --doAllThings(self)
+        -calls makeOrbit(), saveData(), and plot(1)
+        -calculates the orbit, saves qp, and plot orbit in rotating frame
+    
+    --findEj(self)
+        -calculates Ej (Jacobi Integral)
+        -returns numpy array Ej
+        
+    --Capture(self)
+        -calculates capture criteria for guiding center
+        -returns numpy array of lambdas (capture criteria) 
+    
+_______________________________________________________________________________    
+'''
 import astropy.units as u
 import astropy.constants as const
 import numpy as np
@@ -7,15 +73,15 @@ from numpy import arange
 from numpy import meshgrid
 from mpl_toolkits.mplot3d import Axes3D
 
-###############################################################
+################################################################################
 # Defining some constants
-###############################################################
+################################################################################
 pi = np.pi
 G = const.G
 
-###############################################################
+################################################################################
 # Defining model dependent constants
-###############################################################
+################################################################################
       
 #Disk parameters (You can toggle these)
 vc = 220 *u.km /u.s             # Circular velocity of the disk
@@ -23,20 +89,14 @@ RSun = 8 *u.kpc                 # Solar galactocentric radius
 SigmaSun = 50 *u.Msun /u.pc**2  # Surface density at the solar radius
 Rd = 2.5 *u.kpc                 # Scale length of the disk 
   
-#Disk parameters (You can toggle these), Other paramaters specified in constructor
+#Disk parameters (You can toggle these), Other parameters specified in constructor
 theta = 25 *u.degree
 
-
-'''
-The Orbit_Calculator class performs all of the calculations associated with
-numerically simulating a star's orbit about the center of a spiral galaxy
-and plots the results. 
-'''
 class Orbit_Calculator(object):
 
-###############################################################
+################################################################################
 #Constructor
-###############################################################
+################################################################################
 
     def __init__(self,m1,IntTime1,CR1,epsilon1,x01,y01,vx01,vy01):
         
@@ -58,7 +118,7 @@ class Orbit_Calculator(object):
         global T
         global OmegaCR
         
-        #Instantiate global variables
+        #Assign global variables
         m = m1
         IntTime = IntTime1*u.Gyr
         CR = CR1*u.kpc
@@ -79,9 +139,9 @@ class Orbit_Calculator(object):
 # All methods preceded by "__" are private functions that can't be called
 # outside of the class 
             
-###############################################################
-# Method for Disk Paramaters
-###############################################################
+################################################################################
+# Method for Disk Parameters
+################################################################################
 
 # Calculates the surface density of the disk at any radius
     def __findSurfaceDensity(self,R): 
@@ -91,34 +151,34 @@ class Orbit_Calculator(object):
         return SigmaR
 
 
-###############################################################        
+################################################################################        
 # Methods for spiral parameters
-###############################################################
+################################################################################
 
 # Calculates parameter alpha
     def __findalpha(self): 
         
         global alpha
         alpha = m/np.tan(theta)
-        return alpha
         
 # Calculates amplitude of spiral perturbation
     def __findA(self,R): 
         Sigma = self.__findSurfaceDensity(R)
         A = 2. *pi *G *Sigma*epsilon*R/alpha
         return A
-    
+        
 # Calculates hcr, Jacobi integral for a star at corotation with no spirals
     def __findhcr(self):
         disk_potential = (vc**2)*np.log(CR/u.kpc)
         E_tot = disk_potential + 0.5*(vc**2)
         L_z = CR*vc
         global hcr
-        hcr = (E_tot - OmegaCR*L_z) #units of (km/s)^2
-         
-###############################################################
+        hcr = (E_tot - OmegaCR*L_z) #units of (km/s)^2     
+        
+                
+################################################################################
 #Private Calculation Methods
-###############################################################     
+################################################################################    
 
 # Calculates the acceleration in this potential at coordinate x-y
     def __dvdt(self,qp,tnow):         
@@ -128,7 +188,6 @@ class Orbit_Calculator(object):
         time = tnow *u.yr
         R = (x**2 + y**2)
         A = self.__findA(np.sqrt(R))
-        
         
         # Find acceleration from logarithmic disk
         dvxD = vc**2 *x/R
@@ -171,7 +230,7 @@ class Orbit_Calculator(object):
         return np.array([x,y,vx,vy,tnow]) 
         
 # Helper function to plot the spiral arms, arm points calcualted in polar 
-# coordiantes and then converted to rectangular for plotting  
+# coordinates and then converted to rectangular for plotting  
     def __plotArms(self,ax):
         
         points = 20                     #Number of points of each arm to plot
@@ -210,9 +269,9 @@ class Orbit_Calculator(object):
         return qpR
         
                                             
-###############################################################
+################################################################################
 #Public Methods (Callable)
-###############################################################   
+################################################################################  
     
 # Calls the previously defined functions to calculate the orbit in both frames  
     def makeOrbit(self):
@@ -220,7 +279,7 @@ class Orbit_Calculator(object):
         start = default_timer()
         self.__findalpha()
         self.__findhcr()
-        
+    
         qp0 = np.array([x0,y0,vx0,vy0,T[0]])
         global qp
         qp = np.zeros(shape=(len(T),5))
@@ -244,23 +303,22 @@ class Orbit_Calculator(object):
     def getqpR(self):
         return qpR
 
+# Returns NSteps                 
+    def getNSteps(self):
+        return NSteps
+        
 # Saves data from non-rotating frame in dump file  
 # Remember that each computer has a different file path    
     def saveData(self):
     
         filename = "qp_(m=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
         str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
-        np.save("C:\Trapped_Orbital_Integrator\qp_file\%s" % filename,qp) 
+        np.save("/Users/LBarbano/Desktop/QP_Dump/%s" % filename,qp) 
         
 # Plots the orbit  
 # For plot of orbit in non-rotating frame, enter 0 as the plot option
-# For the plot in hte rotating frame, enter anything else        
+# For the plot in the rotating frame, enter anything else        
     def plot(self,plotOption):
-        
-        if plotOption==0:
-            qps = qp
-        else:
-            qps = qpR
         
         plt.close('all')         #close old plots still up
         
@@ -269,7 +327,7 @@ class Orbit_Calculator(object):
         ax.set_xlabel(r'$x$ (kpc)')
         ax.set_ylabel(r'$y$ (kpc)')
         plt.axis([-13,13,-13,13])
-        plt.axes().set_aspect('equal', 'datalim')
+        ax.set_aspect('equal', 'datalim')
         
         #Lindlbad Resonance stuff
         R_1o = (m+np.sqrt(2))*vc/(m*OmegaCR)
@@ -287,41 +345,54 @@ class Orbit_Calculator(object):
         ax.add_patch(lind1uh)
         ax.add_patch(lind2uh)
         
-        ###Plot capture area
-        #set up contour plot
-        delta = 0.025
-        x_range = arange(-13.0, 13.0, delta)
-        y_range = arange(-13.0, 13.0, delta)
-        X, Y = meshgrid(x_range,y_range)
-        R = np.sqrt((X**2) + (Y**2))
-        phi = np.arctan2(Y,X)
-        #find Phi_eff_min
-        A_CR = self.__findA(CR).to((u.km/u.s)**2)
-        phi_min = (hcr - A_CR)/((u.km/u.s)**2)
-        phi_max = (hcr + A_CR)/((u.km/u.s)**2)
-        #defining the contour equation
-        A = self.__findA(R*u.kpc).to((u.km/u.s)**2)
-        spiral_potential = A_CR*np.cos(-alpha*np.log(R*u.kpc/CR)*u.rad -m*phi*u.rad)
-        disk_potential = (vc**2)*np.log(R)
-        potential = spiral_potential + disk_potential
-        func = (0.5*(OmegaCR**2)*(CR**2) - (OmegaCR**2)*CR*(R*u.kpc) + potential)/((u.km/u.s)**2)
-        #plotting contour
-        plt.contourf(X,Y,func,[phi_min,phi_max],colors='gray',alpha=0.3)
+        self.__plotArms(ax)
+        plt.show()
         
         #Plot corotation radius
         circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False) #plotting CR radius
         ax.add_patch(circ)
-
+        
+        #Plot the capture region
+        if plotOption != 0:
+            delta = 0.025
+            x_range = arange(-13.0, 13.0, delta)
+            y_range = arange(-13.0, 13.0, delta)
+            X, Y = meshgrid(x_range,y_range)
+            R = np.sqrt((X**2) + (Y**2))
+            phi = np.arctan2(Y,X)
+            #find Phi_eff_min
+            A_CR = self.__findA(CR).to((u.km/u.s)**2)
+            phi_min = (hcr - A_CR)/((u.km/u.s)**2)
+            phi_max = (hcr + A_CR)/((u.km/u.s)**2)
+            #defining the contour equation
+            A = self.__findA(R*u.kpc).to((u.km/u.s)**2)
+            spiral_potential = A_CR*np.cos(-alpha*np.log(R*u.kpc/CR)*u.rad -m*phi*u.rad)
+            disk_potential = (vc**2)*np.log(R)
+            potential = spiral_potential + disk_potential
+            func = (0.5*(OmegaCR**2)*(CR**2) - (OmegaCR**2)*CR*(R*u.kpc) + potential)/((u.km/u.s)**2)
+            #plotting contour
+            plt.contourf(X,Y,func,[phi_min,phi_max],colors='gray',alpha=0.3)
+            
+        if plotOption==0:
+            qps = qp
+        elif plotOption==1:
+            qps = qpR
+            
+            [Rgx,Rgy] = self.findRg()
+            plt.plot(Rgx,Rgy,color="black", markevery=500, marker='.', ms=8)
+        
+        else:
+            return fig, ax
+            
         plt.plot(qps[:,0],qps[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
-        self.__plotArms(ax)
-        plt.show()
+        return fig, ax
         
     def doAllThings(self):
             
         self.makeOrbit()
         self.saveData()
         self.plot(1)
-       
+        
     def findEj(self):
         
         #pulling info
@@ -400,3 +471,19 @@ class Orbit_Calculator(object):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         ax.plot_wireframe(X,Y,potential - 0.5*(OmegaCR*R)**2)#plots phi_eff
+
+# Calculates position of guiding radius in rotating frame        
+    def findRg(self):
+      
+        #pulling info out of qp
+        x = qp[:,0]*u.kpc
+        y = qp[:,1]*u.kpc
+        vx = qp[:,2]*u.km/u.s
+        vy = qp[:,3]*u.km/u.s
+        R_g = (np.sqrt(x**2 + y**2)*-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))/vc)
+        phi = np.arctan2(y,x)
+        t = T *u.yr
+        phiR= phi - (t*OmegaCR).decompose() *u.rad
+        xR = R_g *np.cos(phiR)
+        yR = R_g *np.sin(phiR)
+        return np.array([xR,yR])
