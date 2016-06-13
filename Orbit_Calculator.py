@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from timeit import default_timer
 from numpy import arange
 from numpy import meshgrid
+from mpl_toolkits.mplot3d import Axes3D
 
 ###############################################################
 # Defining some constants
@@ -249,7 +250,7 @@ class Orbit_Calculator(object):
     
         filename = "qp_(m=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
         str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
-        np.save("C:\Summer_2016\qp_file\%s" % filename,qp) 
+        np.save("C:\Trapped_Orbital_Integrator\qp_file\%s" % filename,qp) 
         
 # Plots the orbit  
 # For plot of orbit in non-rotating frame, enter 0 as the plot option
@@ -366,3 +367,36 @@ class Orbit_Calculator(object):
         #finding Lambda_nc,2
         Lam_nc2 = Lam_c - ((R_g/CR)*(E_ran/A_CR))
         return np.array(Lam_nc2)
+        
+    def Phi_eff(self):
+        #pulling info out of qp
+        x = qp[:,0]*u.kpc
+        y = qp[:,1]*u.kpc
+        vx = qp[:,2]*u.km/u.s
+        vy = qp[:,3]*u.km/u.s
+        t = qp[:,4]*u.yr
+        R = np.sqrt(x**2 + y**2)
+        phi = np.arctan2(y,x)
+        A = self.__findA(R).to((u.km/u.s)**2)
+        #finding potential
+        disk_potential = (vc**2)*np.log(R/u.kpc)
+        spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad + m*phi)
+        potential = disk_potential + spiral_potential
+        #put it together
+        phi_eff = potential - 0.5*(OmegaCR*R)**2
+        return phi_eff
+        
+    def test(self):
+        delta = 0.25
+        x_range = arange(-13.0, 13.0, delta)
+        y_range = arange(-13.0, 13.0, delta)
+        X, Y = meshgrid(x_range,y_range)
+        R = np.sqrt((X**2) + (Y**2))*u.kpc
+        phi = np.arctan2(Y,X)
+        A = self.__findA(R).to((u.km/u.s)**2)
+        disk_potential = (vc**2)*np.log(R/u.kpc)
+        spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad - m*phi*u.rad)
+        potential = disk_potential + spiral_potential
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.plot_wireframe(X,Y,potential - 0.5*(OmegaCR*R)**2)#plots phi_eff
