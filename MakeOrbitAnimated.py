@@ -1,3 +1,4 @@
+from Orbit_Calculator import Orbit_Calculator
 import astropy.units as u
 import astropy.constants as const
 import numpy as np
@@ -24,6 +25,7 @@ RSun = 8 *u.kpc # Solar galactocentric radius
 SigmaSun = 50 *u.Msun /u.pc**2 # Surface density at the solar radius
 Rd = 2.5 *u.kpc # Scale length of the disk
 
+
 # Functions that define disk parameters
 def findSurfaceDensity(R): # Calculats the surface density of the disk at any radius
     Sigma0 = SigmaSun *np.exp(RSun/Rd)
@@ -33,19 +35,20 @@ def findSurfaceDensity(R): # Calculats the surface density of the disk at any ra
 ### Some time dependent things you can toggle
 IntTime = 0.5 *u.Gyr # Total time over which to integrate
 StepTime = 100000. *u.yr # Time between each calculation
+
 # DON'T TOUCH the next three lines. They make the time series
 IntTimeUnitless = (IntTime /u.yr).decompose()
 NSteps = np.rint( (IntTime / StepTime).decompose() ) # Intiger number of total steps to take
 T = np.linspace(0,IntTimeUnitless,NSteps)
 
-RetardingConstant = 10 #Animation related stuff
+RetardingConstant = 0.0001*NSteps #Animation related stuff
  
 ### Spiral paremeters 
 # You can toggle these  
 m = 4
 theta = 25 *u.degree
 CR = 8 *u.kpc
-epsilon = 0.3
+epsilon = 0.4
 
 # Functions that define spiral parameters
 def findalpha(m,theta): # Calculated parameter alpha
@@ -77,8 +80,8 @@ def dvdt(qp,tnow): # Finds the accelleration in this potential at coordinate x-y
     dvxS = dvSFront *(m*y - alpha*x)
     dvyS = -dvSFront *(m*x + alpha*y)
     # Find total acceleration
-    dvxdt = ( (dvxD + dvxS)/(u.km /u.s**2) ).decompose()
-    dvydt = ( (dvyD + dvyS)/(u.km /u.s**2) ).decompose()
+    dvxdt = ((dvxD + dvxS)/(u.km /u.s**2))
+    dvydt = ((dvyD + dvyS)/(u.km /u.s**2))
     return np.array([dvxdt,dvydt])
 
 def leapstep(qpnow,tnow): # A single leapstep (t+dt), using kick-drift-kick method
@@ -102,97 +105,98 @@ def leapstep(qpnow,tnow): # A single leapstep (t+dt), using kick-drift-kick meth
     return qpnew
     
 def makeorbit(qp0):
-    qp = np.array([qp0]) #unnecessary, its already an array
-    print NSteps
-    for x in T:
-        qpstep = leapstep(qp0,x)
-        qp = np.concatenate((qp,np.array([qpstep])),axis=0)
+    qp = np.zeros(shape=(len(T),4))
+    qp[0] = qp0
+    print "Steps: %s" %str(NSteps)
+    for i in range(len(T)):
+        qpstep = leapstep(qp0,T[i])
+        qp[i] = qpstep
         qp0 = qpstep
-    qp = np.delete(qp,np.shape(qp)[0]-1,0) # Ensure the shape matches for later fcns
     return qp
 
-def findphiR(x,y,t):
+def toRframe(qp):  # Convert coordinates from NR-frame to R-frame
     OmegaCR = vc/CR # Define orbital frequency
-    rotationangle = (t*OmegaCR).decompose() *u.rad
-    if (x < 0  and y >= 0): phiR = np.arctan(y/x) + pi *u.rad - rotationangle
-    elif (x < 0  and y < 0):  phiR = np.arctan(y/x) - pi *u.rad - rotationangle
-    elif (x == 0 and y > 0):  phiR = pi/2. *u.rad - rotationangle
-    elif (x == 0 and y < 0):  phiR = -pi *u.rad - rotationangle
-    elif (x == 0 and y == 0): phiR = - rotationangle
-    else: phiR = np.arctan(y/x) - rotationangle
-    return phiR
-
-
-def toRframe(qp):  # Convert coordinates from N-frame to R-frame
-    OmegaCR = vc/CR # Define orbital frequency
-    # Transform into cylindrical coordinates
-    x = qp[:,0] *u.kpc
-    y = qp[:,1] *u.kpc
-    vx = qp[:,2] *u.km/u.s
-    vy = qp[:,3] *u.km/u.s
+    # Pull out cartesian non-rotating info
+    x = qp[:,0]
+    y = qp[:,1]
+    vx = qp[:,2]
+    vy = qp[:,3]
     t = T *u.yr
+    # Calculate polar rotating coordinates for position
     R = np.sqrt(x**2 + y**2)
-    phiR = np.arctan(y/x) - (t*OmegaCR).decompose() *u.rad #this is a slightly unecessary way to get the array shape, just use qp?
-    for i in xrange(0,np.shape(phiR)[0]):
-        phiR[i] = findphiR(x[i],y[i],t[i])
+    phi = np.arctan2(y,x)*u.rad
+    phiR= phi - (t*OmegaCR).decompose() *u.rad
     xR = R *np.cos(phiR)
     yR = R *np.sin(phiR)
-    vphiR = np.abs(vy *np.cos(np.arctan(y/x))) + np.abs(vx *np.sin(np.arctan(y/x)))
-    vxR = vphiR *np.cos(phiR)
-    vyR = vphiR *np.sin(phiR)
-
-    xR = (xR/u.kpc).decompose()
-    yR = (yR/u.kpc).decompose()
-    vxR = (vxR /u.km*u.s).decompose()
-    vyR = (vyR /u.km*u.s).decompose()
-    R = (R/u.kpc).decompose()
-    vphiR = (vphiR/u.km*u.s).decompose()
-    qpR = np.transpose(np.array([xR,yR,vxR,vyR,R,vphiR]))
+    # Calculate polar rotating coordinates for velocity
+    v_tot = np.sqrt(vx**2 + vy**2)
+    theta = np.arctan2(vy,vx)*u.rad #angle between velocity vector and x-axis
+    alph = phi - theta # angle between position and velocity vectors
+    vr = v_tot*np.cos(alph)
+    vphi = -v_tot*np.sin(alph)
+    vphiR = vphi - ((OmegaCR*R*u.kpc)/(u.km/u.s))
+    vxR = vr *np.cos(phiR) + vphiR*np.sin(phiR)
+    vyR = vr *np.sin(phiR) + vphiR*np.cos(phiR)
+    # Put it all back into a new array for rotating frame
+    qpR = np.transpose(np.array([xR,yR,vxR,vyR,vr,vphi,vphiR]))
     return qpR
 
-
-
+def plotArms():
+    points = 20
+    radius = np.zeros(points)
+    t = np.linspace(0,np.pi/2,points)
+    for i in xrange(0,m):
+        radius = (CR/u.kpc)*np.exp((-m*(t) +np.pi)/alpha)
+        ax.plot(radius*np.cos(t+2*np.pi*i/m),radius*np.sin(t+2*np.pi*i/m), color="purple",ls='dotted')
+    return None
+    
 x0 = 7.6 # Must use implicit units of kpc
 y0 = 0. # Must use implicit units of kpc
-vx0 = -2.5 # Must use implicit units of km/s
+vx0 = 30. # Must use implicit units of km/s
 vy0 = 223. # Must use implicit units of km/s
 qp0 = np.array([x0,y0,vx0,vy0])
 qp = makeorbit(qp0)
 qpR = toRframe(qp)
 
-
 plt.close('all') #close old plots still up
 
 fig = plt.figure(1) #setting up the basic figure with axes and labels
 ax = fig.add_subplot(1,1,1)
-plt.xlabel(r'$x$ (kpc)')
-plt.ylabel(r'$y$ (kpc)')
-plt.axis([-10,10,-10,10])
+ax.set_xlabel(r'$x$ (kpc)')
+ax.set_ylabel(r'$y$ (kpc)')
+plt.axis([-13,13,-13,13])
 
-plt.plot(qp[:,0],qp[:,1], color="SlateBlue",ls='dotted') #plotting stellar path, NR frame
-plt.plot(qpR[:,0],qpR[:,1], color="red",ls='dotted') #plotting the stellar path, R frame
-#plt.plot(qpR[:,0][0], qpR[:,1][0], 'g*', markersize='12') #plotting the start of the stellar path
-circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False) #plotting CR radius
-#linblad1 = plt.Circle((0,0), (CR/u.kpc)*0.8, color='r', fill=False, ls='dashed')
-#linblad2 = plt.Circle((0,0), (CR/u.kpc)*1.2, color='r', fill=False, ls='dashed')
+circ = plt.Circle((0,0), (CR/u.kpc), color='g', fill=False,ls = 'dashed') #plotting CR radius
 ax.add_patch(circ)
-#ax.add_patch(linblad1)
-#ax.add_patch(linblad2)
 
-
-d, = ax.plot(qp[0,0],qp[0,1], 'bo') #Draw initial location of star
-s, = ax.plot(qpR[0,0],qpR[0,1], 'ro') #Draw initial location of star
+#Animation Stuff
+###############################################################################
+#Star
+s, = ax.plot(qpR[0,0],qpR[0,1], 'r*',markersize='12') #Draw initial location of star
+#Path
+paths, = ax.plot(qpR[0,0],qpR[0,1], color="red",ls='dotted')
 
 # animation function.  This is called sequentially
 def animate(i):
-    d.set_data(qp[RetardingConstant*i,0],qp[RetardingConstant*i,1])
-    s.set_data(qpR[RetardingConstant*i,0],qpR[RetardingConstant*i,1])
-    return d,s
+    s.set_data(qpR[int(RetardingConstant*i),0],qpR[int(RetardingConstant*i),1])  
+    paths.set_data(qpR[0:int(RetardingConstant*i),0],qpR[0:int(RetardingConstant*i),1])
+    return s,paths
+    
 # call the animator.  blit=True means only re-draw the parts that have changed.
-anim = animation.FuncAnimation(fig, animate, frames=int(NSteps/RetardingConstant), interval=0.05)
+anim = animation.FuncAnimation(fig, animate, frames=int(NSteps/RetardingConstant), interval=0.05, blit = True)
+###############################################################################
+plotArms()
+
+#plt.plot(qpR[:,0],qpR[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
+#plotting the stellar path, markers at (markerevery*StepTime) time, e.g. 10^7
 
 plt.show()
 
-duration = default_timer() - start
-print 'time:'
-print duration
+duration = default_timer() - start 
+print "time: %s s" % str(duration)
+
+
+filename = "qp_(m=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
+str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
+
+np.save("/Users/LBarbano/Desktop/QP_Dump/%s" % filename,qp)
