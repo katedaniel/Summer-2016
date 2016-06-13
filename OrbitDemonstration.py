@@ -11,8 +11,10 @@ class's attributes and methods. See the command line for the class summary
 provided by the help() function. Note that this help step is not necessary, merely
 helpful when using this class at the beginning.
 '''
-from Orbit_Calculator import Orbit_Calculator
-help(Orbit_Calculator)
+import Orbit_Code 
+reload(Orbit_Code)
+
+#help(Orbit_Code.Orbit_Calculator)
 '''
 Instantiate an Orbit_Calculator object with the appropriate parameters. The 
 instance of our Orbit_Calculator will be called "orbit"
@@ -24,7 +26,7 @@ The arguments are respectively:
 4: epsilon of spiral
 5,6,7,8: x0,y0,vx0,vy0 (implicit units of kpc and km/s respectively)
 '''
-orbit = Orbit_Calculator(4,.5,8,.4,7.8,0.,3.,230.) 
+orbit = Orbit_Code.Orbit_Calculator(4,.01,8,.4,7.8,0.,3.,230.) 
 
 '''
 Calculate the orbit. Once you've calculated the orbit, there is no need to 
@@ -38,7 +40,7 @@ Plot the orbit in the non-rotating or rotating frame. The plot method takes an
 argument of 0 to plot the star's orbit in the non-rotating frame and anything else for 
 the rotating frame.
 '''
-fig,ax = orbit.plot(1) 
+fig,ax = orbit.plot(0) 
 
 '''
 To plot the orbit in the rotating frame, it is not necessary to redo the 

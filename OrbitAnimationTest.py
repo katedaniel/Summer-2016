@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import animation
 from Orbit_Calculator import Orbit_Calculator
 
-orbit = Orbit_Calculator(4,0.5,8,.4,7.8,0.,3.,230.) 
+orbit = Orbit_Calculator(4,0.01,8,.4,7.8,0.,3.,230.) 
 orbit.makeOrbit()
 fig,ax = orbit.plot(2)
 
