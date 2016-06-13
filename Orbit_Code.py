@@ -301,7 +301,7 @@ class Orbit_Calculator(object):
         phi_max = (hcr + A_CR)/((u.km/u.s)**2)
         #defining the contour equation
         A = self.__findA(R*u.kpc).to((u.km/u.s)**2)
-        spiral_potential = A*np.cos(-alpha*np.log(R*u.kpc/CR)*u.rad -m*phi*u.rad)
+        spiral_potential = A_CR*np.cos(-alpha*np.log(R*u.kpc/CR)*u.rad -m*phi*u.rad)
         disk_potential = (vc**2)*np.log(R)
         potential = spiral_potential + disk_potential
         func = (0.5*(OmegaCR**2)*(CR**2) - (OmegaCR**2)*CR*(R*u.kpc) + potential)/((u.km/u.s)**2)
