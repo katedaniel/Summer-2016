@@ -1,13 +1,14 @@
 import numpy as np
 from matplotlib import animation
-from Orbit_Calculator import Orbit_Calculator
+import Orbit_Code 
+reload(Orbit_Code)
 
-orbit = Orbit_Calculator(4,0.01,8,.4,7.8,0.,3.,230.) 
-orbit.makeOrbit()
+orbit = Orbit_Code.Orbit_Calculator(4,5.0,8,.4,7.8,0.,3.,230.) 
+f = np.load("/Users/LBarbano/Desktop/QP_Dump/qp_(m=4)_(t=5.0)_(CR=8.0)_(eps=0.4)_(x0=7.8)_(y0=0.0)_(vx0=3.0)_(vy0=230.0).npy")
+orbit.setqp(f)
 fig,ax = orbit.plot(2)
 
-RetardingConstant = 0.005*orbit.getNSteps() #Animation related stuff
-
+RetardingConstant = 0.001*orbit.getNSteps() #Animation related stuff
 
 star = orbit.getqpR()
 guide = np.transpose(orbit.findRg())
@@ -29,4 +30,5 @@ def animate(i):
     return s,g,paths,pathg
     
 # call the animator.  blit=True means only re-draw the parts that have changed.
-anim = animation.FuncAnimation(fig, animate, frames= int(orbit.getNSteps()/RetardingConstant), interval= 0.01)
+anim = animation.FuncAnimation(fig, animate, frames= int(orbit.getNSteps()/RetardingConstant), interval= 1.0)
+

@@ -123,7 +123,7 @@ class Orbit_Calculator(object):
         global OmegaCR
         
         #Assign global variables
-        m = m1
+        m = int(m1)
         IntTime = IntTime1*u.Gyr
         CR = CR1*u.kpc
         epsilon = epsilon1
@@ -138,7 +138,9 @@ class Orbit_Calculator(object):
         IntTimeUnitless = (IntTime/u.yr).decompose()     #Simulation time
         NSteps = np.rint((IntTime/StepTime).decompose()) #Integer number of total steps to take
         T = np.linspace(0,IntTimeUnitless,NSteps)        #Time values
-       
+        
+        self.__findalpha()
+        self.__findhcr()
 # Note: 
 # All methods preceded by "__" are private functions that can't be called
 # outside of the class 
@@ -252,7 +254,7 @@ class Orbit_Calculator(object):
         y = qpl[:,1]
         vx = qpl[:,2]
         vy = qpl[:,3]
-        t = T *u.yr
+        t = qpl[:,4]*u.yr
         # Calculate polar rotating coordinates for position
         R = np.sqrt(x**2 + y**2)
         phi = np.arctan2(y,x)*u.rad
@@ -281,8 +283,6 @@ class Orbit_Calculator(object):
     def makeOrbit(self):
         
         start = default_timer()
-        self.__findalpha()
-        self.__findhcr()
     
         qp0 = np.array([x0,y0,vx0,vy0,T[0]])
         global qp
@@ -311,6 +311,14 @@ class Orbit_Calculator(object):
     def getNSteps(self):
         return NSteps
         
+# Sets qp                 
+    def setqp(self,qps):
+        global qp
+        global qpR
+        qp = qps
+        qpR = self.__toRframe(qp)
+        NSteps = qp
+                
 # Saves data from non-rotating frame in dump file  
 # Remember that each computer has a different file path    
     def saveData(self):
@@ -478,15 +486,14 @@ class Orbit_Calculator(object):
 
 # Calculates position of guiding radius in rotating frame        
     def findRg(self):
-      
         #pulling info out of qp
         x = qp[:,0]*u.kpc
         y = qp[:,1]*u.kpc
         vx = qp[:,2]*u.km/u.s
         vy = qp[:,3]*u.km/u.s
+        t = qp[:,4] *u.yr
         R_g = (np.sqrt(x**2 + y**2)*-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))/vc)
         phi = np.arctan2(y,x)
-        t = T *u.yr
         phiR= phi - (t*OmegaCR).decompose() *u.rad
         xR = R_g *np.cos(phiR)
         yR = R_g *np.sin(phiR)

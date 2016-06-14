@@ -1,10 +1,6 @@
 '''
 This file demonstrates how to utilize the Orbit_Calculator Class.
-If you ever make any changes to the Orbit_Calculator class, make sure to 
-restart the kernel so the changes will be implemented.
-''' 
 
-'''
 Start by importing the Orbit_Calculator class from the file Orbit_Calculator.
 Once it has been imported, type help(Orbit_Calculator) to get a summary of the 
 class's attributes and methods. See the command line for the class summary 
@@ -40,7 +36,7 @@ Plot the orbit in the non-rotating or rotating frame. The plot method takes an
 argument of 0 to plot the star's orbit in the non-rotating frame and anything else for 
 the rotating frame.
 '''
-fig,ax = orbit.plot(0) 
+fig,ax = orbit.plot(1) 
 
 '''
 To plot the orbit in the rotating frame, it is not necessary to redo the 
