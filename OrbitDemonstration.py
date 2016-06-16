@@ -22,7 +22,7 @@ The arguments are respectively:
 4: epsilon of spiral
 5,6,7,8: x0,y0,vx0,vy0 (implicit units of kpc and km/s respectively)
 '''
-orbit = Orbit_Code.Orbit_Calculator(4,.01,8,.4,7.8,0.,3.,230.) 
+orbit = Orbit_Code.Orbit_Calculator(4,25,.01,8,.4,7.8,0.,3.,230.) 
 
 '''
 Calculate the orbit. Once you've calculated the orbit, there is no need to 
@@ -36,7 +36,7 @@ Plot the orbit in the non-rotating or rotating frame. The plot method takes an
 argument of 0 to plot the star's orbit in the non-rotating frame and anything else for 
 the rotating frame.
 '''
-fig,ax = orbit.plot(1) 
+fig,ax = orbit.plot(2) 
 
 '''
 To plot the orbit in the rotating frame, it is not necessary to redo the 
@@ -59,7 +59,7 @@ b = orbit.getqpR()
 Now we can save the data in the non-rotating frame to our dump folder by using the 
 saveData method.
 '''
-#orbit.saveData()
+orbit.saveData()
 
 '''
 Finally, we can do all of these things simply with the method doAllThings()

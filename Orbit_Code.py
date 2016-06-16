@@ -93,8 +93,6 @@ RSun = 8 *u.kpc                 # Solar galactocentric radius
 SigmaSun = 50 *u.Msun /u.pc**2  # Surface density at the solar radius
 Rd = 2.5 *u.kpc                 # Scale length of the disk 
   
-#Disk parameters (You can toggle these), Other parameters specified in constructor
-theta = 25 *u.degree
 
 class Orbit_Calculator(object):
 
@@ -102,7 +100,7 @@ class Orbit_Calculator(object):
 #Constructor
 ################################################################################
 
-    def __init__(self,m1,IntTime1,CR1,epsilon1,x01,y01,vx01,vy01):
+    def __init__(self,m1,theta1,IntTime1,CR1,epsilon1,x01,y01,vx01,vy01):
         
         #The arguments given are assigned to global variables.
         #This is obviously not the best way to use global variables in a class,
@@ -121,9 +119,11 @@ class Orbit_Calculator(object):
         global NSteps                  
         global T
         global OmegaCR
+        global theta 
         
         #Assign global variables
         m = int(m1)
+        theta = theta1*u.degree
         IntTime = IntTime1*u.Gyr
         CR = CR1*u.kpc
         epsilon = epsilon1
@@ -317,14 +317,13 @@ class Orbit_Calculator(object):
         global qpR
         qp = qps
         qpR = self.__toRframe(qp)
-        NSteps = qp
                 
 # Saves data from non-rotating frame in dump file  
 # Remember that each computer has a different file path    
     def saveData(self):
     
-        filename = "qp_(m=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
-        str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
+        filename = "qp_(m=%s)_(th=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
+        str(theta/u.degree),str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
         np.save("/Users/LBarbano/Desktop/QP_Dump/%s" % filename,qp) 
         
 # Plots the orbit  
@@ -389,14 +388,12 @@ class Orbit_Calculator(object):
             qps = qp
         elif plotOption==1:
             qps = qpR
-            
             [Rgx,Rgy] = self.findRg()
             plt.plot(Rgx,Rgy,color="black", markevery=500, marker='.', ms=8)
-        
         else:
-            return fig, ax
-            
+            return fig, ax  
         plt.plot(qps[:,0],qps[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
+        
         return fig, ax
         
     def doAllThings(self):
