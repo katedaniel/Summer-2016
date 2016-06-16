@@ -313,7 +313,7 @@ class Orbit_Calculator(object):
     
         filename = "qp_(m=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
         str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
-        np.save("/Users/LBarbano/Desktop/QP_Dump/%s" % filename,qp) 
+        np.save("C:/Trapped_Orbital_Integrator/qp_file/%s" % filename,qp) 
         
 # Plots the orbit  
 # For plot of orbit in non-rotating frame, enter 0 as the plot option
@@ -406,7 +406,7 @@ class Orbit_Calculator(object):
         #finding disk potential
         disk_potential = (vc**2)*np.log(R/u.kpc)
         #finding spiral potential
-        A = self.__findA(R).to((u.km/u.s)**2)
+        A = self.__findA(CR).to((u.km/u.s)**2)
         spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad + (m*OmegaCR*t)*u.rad -m*phi)
         #calculating potential, then energy, then Ej
         potential = disk_potential + spiral_potential
