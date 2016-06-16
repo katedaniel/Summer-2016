@@ -319,7 +319,7 @@ class Orbit_Calculator(object):
     def saveData(self):
         filename = "qp_(m=%s)_(th=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
         str(theta/u.degree),str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
-        np.save("/Users/LBarbano/Desktop/QP_Dump/%s" % filename,qp) 
+        np.save("C:/Trapped_Orbital_Integrator/qp_file/%s" % filename,qp) 
        
 # Plots the orbit  
 # For plot of orbit in non-rotating frame, enter 0 as the plot option
