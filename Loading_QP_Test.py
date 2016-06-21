@@ -21,4 +21,8 @@ a = parseFilename(filename)
 orbit = Orbit_Code.Orbit_Calculator(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8])
 f = np.load(filename)
 orbit.setqp(f)
+<<<<<<< HEAD
 orbit.plot(1)
+=======
+tck, u = orbit.Poincare()
+>>>>>>> refs/remotes/origin/Luke

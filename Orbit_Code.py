@@ -67,6 +67,7 @@ _______________________________________________________________________________
 import astropy.units as u
 import astropy.constants as const
 import numpy as np
+from scipy import interpolate
 import matplotlib.pyplot as plt
 from timeit import default_timer
 from numpy import arange
@@ -313,14 +314,14 @@ class Orbit_Calculator(object):
         global qpR
         qp = qps
         qpR = self.__toRframe(qp)
-                
+        
 # Saves data from non-rotating frame in dump file  
 # Remember that each computer has a different file path    
-    def saveData(self):
+    def saveData(self,filepath,):
         filename = "qp_(m=%s)_(th=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
         str(theta/u.degree),str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
-        np.save("C:/Trapped_Orbital_Integrator/qp_file/%s" % filename,qp) 
-       
+        np.save(filepath + filename,qp) 
+        
 # Plots the orbit  
 # For plot of orbit in non-rotating frame, enter 0 as the plot option
 # For the plot in the rotating frame, enter anything else        
@@ -490,3 +491,7 @@ class Orbit_Calculator(object):
         xR = R_g *np.cos(phiR)
         yR = R_g *np.sin(phiR)
         return np.array([xR,yR])
+        
+    def Poincare(self):
+        tck, u = interpolate.splprep([qpR[:,0], qpR[:,1]], s=0)
+        return tck, u
