@@ -71,6 +71,7 @@ _______________________________________________________________________________
 import astropy.units as u
 import astropy.constants as const
 import numpy as np
+from scipy import interpolate
 import matplotlib.pyplot as plt
 from timeit import default_timer
 from numpy import arange
@@ -494,4 +495,9 @@ class Orbit_Calculator(object):
         xR = R_g *np.cos(phiR)
         yR = R_g *np.sin(phiR)
         return np.array([xR,yR])
+        
+    def Poincare(self):
+        tck, u = interpolate.splprep([qpR[:,0], qpR[:,1]], s=0)
+        return tck, u
+       
         
