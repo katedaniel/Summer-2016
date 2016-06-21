@@ -22,7 +22,7 @@ The arguments are respectively:
 4: epsilon of spiral
 5,6,7,8: x0,y0,vx0,vy0 (implicit units of kpc and km/s respectively)
 '''
-orbit = Orbit_Code.Orbit_Calculator(4,25,.01,8,.4,7.8,0.,3.,230.) 
+orbit = Orbit_Code.Orbit_Calculator(4,25,.1,8,.4,7.8,0.,3.,230.) 
 
 '''
 Calculate the orbit. Once you've calculated the orbit, there is no need to 
@@ -57,9 +57,9 @@ b = orbit.getqpR()
 
 '''
 Now we can save the data in the non-rotating frame to our dump folder by using the 
-saveData method.
+saveData method. Specifcy a filepath as an argument when saving the data
 '''
-orbit.saveData()
+orbit.saveData("/Users/LBarbano/Desktop/QP_Dump/")
 
 '''
 Finally, we can do all of these things simply with the method doAllThings()
