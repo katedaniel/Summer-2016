@@ -325,7 +325,7 @@ class Orbit_Calculator(object):
     
         filename = "qp_(m=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
         str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
-        np.save("/Users/LBarbano/Desktop/QP_Dump/%s" % filename,qp) 
+        np.save("/Users/kathrynetolfree/Documents/Projects/Scattering/qpDump/%s" % filename,qp) 
         
 # Plots the orbit  
 # For plot of orbit in non-rotating frame, enter 0 as the plot option
@@ -378,7 +378,7 @@ class Orbit_Calculator(object):
             phi_max = (hcr + A_CR)/((u.km/u.s)**2)
             #defining the contour equation
             A = self.__findA(R*u.kpc).to((u.km/u.s)**2)
-            spiral_potential = A_CR*np.cos(-alpha*np.log(R*u.kpc/CR)*u.rad -m*phi*u.rad)
+            spiral_potential = A*np.cos(-alpha*np.log(R*u.kpc/CR)*u.rad -m*phi*u.rad)
             disk_potential = (vc**2)*np.log(R)
             potential = spiral_potential + disk_potential
             func = (0.5*(OmegaCR**2)*(CR**2) - (OmegaCR**2)*CR*(R*u.kpc) + potential)/((u.km/u.s)**2)
@@ -436,6 +436,7 @@ class Orbit_Calculator(object):
         vy = qp[:,3]*u.km/u.s
         R = np.sqrt(x**2 + y**2)
         phi = np.arctan2(y,x)
+        t = qp[:,4]*u.yr
         #pulling some constants
         Ej__ = self.findEj()
         Ej_ = Ej__[0]
@@ -443,8 +444,26 @@ class Orbit_Calculator(object):
         A_CR = self.__findA(CR).to((u.km/u.s)**2)
         #finding Rg
         R_g = R*-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))/vc
-        #finding E_random
-        E_ran = 0.5*((np.sqrt(vx**2 + vy**2)*np.cos(phi - np.arctan2(vy,vx)))**2 + (-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))-vc)**2)
+        ## Finding total energy of star
+        #finding disk potential at R
+        disk_potential = (vc**2)*np.log(R/u.kpc)
+        #finding spiral potential at R
+        A = self.__findA(R).to((u.km/u.s)**2)
+        spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad + (m*OmegaCR*t)*u.rad -m*phi)
+        #calculating total energy at R
+        potential = disk_potential + spiral_potential
+        E_tot = potential + 0.5*(vx**2 + vy**2)
+        ## Finding total energy of star's guiding center
+        #finding disk potential at R_g
+        disk_potential_c = (vc**2)*np.log(R_g/u.kpc)
+        #finding spiral potential at R_g
+        A_c = self.__findA(R_g).to((u.km/u.s)**2)
+        spiral_potential_c = A_c*np.cos(-alpha*np.log(R_g/CR)*u.rad + (m*OmegaCR*t)*u.rad -m*phi)
+        #calculating total energy at R_g
+        potential_c = disk_potential_c + spiral_potential_c
+        E_tot_c = potential_c + 0.5*(vc**2)
+        ## Calculating random energy [E_ran = E_tot - E_tot(R_L)] *See expression below eqn.5 in DW15
+        E_ran = E_tot - E_tot_c
         #finding Lambda_c
         Lam_c = (Ej - hcr/((u.km/u.s)**2))/(A_CR/((u.km/u.s)**2))
         #finding Lambda_nc,2
