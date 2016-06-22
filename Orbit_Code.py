@@ -176,7 +176,7 @@ class Orbit_Calculator(object):
         E_tot = disk_potential + 0.5*(vc**2)
         L_z = CR*vc
         global hcr
-        hcr = (E_tot - OmegaCR*L_z) #units of (km/s)^2     
+        hcr = (E_tot - (OmegaCR*L_z).to((u.km/u.s)**2)) #units of (km/s)^2     
         
                 
 ################################################################################
@@ -373,7 +373,7 @@ class Orbit_Calculator(object):
             phi_max = (hcr + A_CR)/((u.km/u.s)**2)
             #defining the contour equation
             A = self.__findA(R*u.kpc).to((u.km/u.s)**2)
-            spiral_potential = A_CR*np.cos(-alpha*np.log(R*u.kpc/CR)*u.rad -m*phi*u.rad)
+            spiral_potential = A*np.cos(-alpha*np.log(R*u.kpc/CR)*u.rad -m*phi*u.rad)
             disk_potential = (vc**2)*np.log(R)
             potential = spiral_potential + disk_potential
             func = (0.5*(OmegaCR**2)*(CR**2) - (OmegaCR**2)*CR*(R*u.kpc) + potential)/((u.km/u.s)**2)
@@ -398,84 +398,44 @@ class Orbit_Calculator(object):
         self.saveData()
         self.plot(1)
         
-    def findEj(self):
-        
-        #pulling info
+    def findLam(self):
+        #pulling qp data
         x = qp[:,0]*u.kpc
         y = qp[:,1]*u.kpc
         vx = qp[:,2]*u.km/u.s
         vy = qp[:,3]*u.km/u.s
         t = qp[:,4]*u.yr
-        R = np.sqrt((x**2)+(y**2))
-        phi = np.arctan2(y,x)
-        #finding disk potential
-        disk_potential = (vc**2)*np.log(R/u.kpc)
-        #finding spiral potential
-        A = self.__findA(CR).to((u.km/u.s)**2)
-        spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad + (m*OmegaCR*t)*u.rad -m*phi)
-        #calculating potential, then energy, then Ej
-        potential = disk_potential + spiral_potential
-        E_tot = potential + 0.5*(vx**2 + vy**2)
-        L_z = R*-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))
-        E_j = E_tot - OmegaCR*L_z
-        return np.array([E_j, L_z, E_tot]) #implicit units of (km/s)**2
-        
-        
-    def Capture(self):
-        #pulling info out of qp
-        x = qp[:,0]*u.kpc
-        y = qp[:,1]*u.kpc
-        vx = qp[:,2]*u.km/u.s
-        vy = qp[:,3]*u.km/u.s
+        #finding some preliminary variables
         R = np.sqrt(x**2 + y**2)
         phi = np.arctan2(y,x)
-        #pulling some constants
-        Ej__ = self.findEj()
-        Ej_ = Ej__[0]
-        Ej = Ej_[0]
+        vphi = -np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))
+        R_g = (R*vphi/vc).to(u.kpc)
+        A = self.__findA(R).to((u.km/u.s)**2)
         A_CR = self.__findA(CR).to((u.km/u.s)**2)
-        #finding Rg
-        R_g = R*-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))/vc
-        #finding E_random
-        E_ran = 0.5*((np.sqrt(vx**2 + vy**2)*np.cos(phi - np.arctan2(vy,vx)))**2 + (-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))-vc)**2)
-        #finding Lambda_c
-        Lam_c = (Ej - hcr/((u.km/u.s)**2))/(A_CR/((u.km/u.s)**2))
-        #finding Lambda_nc,2
+        A_g = self.__findA(R_g).to((u.km/u.s)**2)
+        #finding potentials of the star and the guiding center
+        disk_potential = (vc**2)*np.log(R/u.kpc)
+        disk_potential_g = (vc**2)*np.log(R_g/u.kpc)
+        spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad + (m*OmegaCR*t)*u.rad -m*phi)
+        spiral_potential_g = A_g*np.cos(-alpha*np.log(R_g/CR)*u.rad + (m*OmegaCR*t)*u.rad -m*phi)
+        potential = disk_potential + spiral_potential
+        potential_g = disk_potential_g + spiral_potential_g
+        #finding total energy for the star and the guiding center
+        E_tot = potential + 0.5*(vx**2 + vy**2)
+        E_tot_g = potential_g + 0.5*(vc**2)
+        #finding E_j
+        L_z = R*vphi
+        E_j = (E_tot - OmegaCR*L_z).to((u.km/u.s)**2)
+        #finding E_ran
+        E_ran = E_tot - E_tot_g
+        #finding Lambda
+        Lam_c = (E_j[0] - hcr)/A_CR
         Lam_nc2 = Lam_c - ((R_g/CR)*(E_ran/A_CR))
-        return np.array(Lam_nc2)
-        
-    def Phi_eff(self):
-        #pulling info out of qp
-        x = qp[:,0]*u.kpc
-        y = qp[:,1]*u.kpc
-        vx = qp[:,2]*u.km/u.s
-        vy = qp[:,3]*u.km/u.s
-        t = qp[:,4]*u.yr
-        R = np.sqrt(x**2 + y**2)
-        phi = np.arctan2(y,x)
-        A = self.__findA(R).to((u.km/u.s)**2)
-        #finding potential
-        disk_potential = (vc**2)*np.log(R/u.kpc)
-        spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad + m*phi)
-        potential = disk_potential + spiral_potential
-        #put it together
+        #finding effective potential
         phi_eff = potential - 0.5*(OmegaCR*R)**2
-        return phi_eff
-        
-    def test(self):
-        delta = 0.25
-        x_range = arange(-13.0, 13.0, delta)
-        y_range = arange(-13.0, 13.0, delta)
-        X, Y = meshgrid(x_range,y_range)
-        R = np.sqrt((X**2) + (Y**2))*u.kpc
-        phi = np.arctan2(Y,X)
-        A = self.__findA(R).to((u.km/u.s)**2)
-        disk_potential = (vc**2)*np.log(R/u.kpc)
-        spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad - m*phi*u.rad)
-        potential = disk_potential + spiral_potential
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax.plot_wireframe(X,Y,potential - 0.5*(OmegaCR*R)**2)#plots phi_eff
+        #print and return
+        print '[Lambda, E_j, phi_eff, L_z, E_tot, E_ran]'
+        return np.array([Lam_nc2, E_j, phi_eff, L_z, E_tot, E_ran])
 
 # Calculates position of guiding radius in rotating frame        
     def findRg(self):
