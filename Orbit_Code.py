@@ -391,6 +391,69 @@ class Orbit_Calculator(object):
         plt.plot(qps[:,0],qps[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
         
         return fig, ax
+    
+    ###Creates a plot of orbittal properties over time
+    def plot_prop(self):
+        
+        plt.close('all')         #close old plots still up
+        
+        fig = plt.figure(1)      #setting up the basic figure with axes and labels
+        ax1 = fig.add_subplot(3,1,1)
+        ax2 = fig.add_subplot(3,1,2, sharex = ax1)
+        ax3 = fig.add_subplot(3,1,3)
+        fig.subplots_adjust(hspace=0.)
+        
+        ax1.set_ylabel(r'$\Lambda_{nc,2} (t)$', size=18)
+        ax2.set_ylabel(r'$\frac{E_{ran} (t)}{E_{ran,0}}$', size=22)
+        ax3.set_ylabel(r'$\frac{R_{L} (t) - R_{CR}}{kpc}$', size=20)
+        ax3.set_xlabel(r't ($10^8$ years)')
+        
+        ax1.set_ylim([-1.3,1.3])
+        ax2.set_ylim([-0.5,5.9])
+        ax3.set_ylim([-2.9,2.9])
+        
+        ax1.set_xticklabels([])
+        ax2.set_xticklabels([])
+        ax1.axhline(y=1,c='0.5')
+        ax1.axhline(y=-1,c='0.5')
+        ax2.axhline(y=1,c='0.5')
+        
+        #Lindlbad Resonance stuff
+        R_1o = ((m+np.sqrt(2))*vc/(m*OmegaCR)).to(u.kpc) - CR
+        R_1i = ((m-np.sqrt(2))*vc/(m*OmegaCR)).to(u.kpc) - CR
+        #for the ultraharmonic resonances
+        R_2o = (((2*m)+np.sqrt(2))*vc/((2*m)*OmegaCR)).to(u.kpc) - CR
+        R_2i = (((2*m)-np.sqrt(2))*vc/((2*m)*OmegaCR)).to(u.kpc) - CR
+        ax3.axhline(y=0,c='0.9')
+        ax3.axhline(y=R_1o/u.kpc, ls='dashed',c='0.5')
+        ax3.axhline(y=R_1i/u.kpc, ls='dashed',c='0.5') 
+        ax3.axhline(y=R_2o/u.kpc, ls='dotted',c='0.5')
+        ax3.axhline(y=R_2i/u.kpc, ls='dotted',c='0.5')       
+        
+        data = self.findLam()     #pulling the orbital data
+        Lam = data[0]
+        E_ran = data[5]
+        
+        x = qp[:,0]*u.kpc         #pulling data from qp
+        y = qp[:,1]*u.kpc
+        vx = qp[:,2]*u.km/u.s
+        vy = qp[:,3]*u.km/u.s
+        t = qp[:,4]*u.yr
+        R = np.sqrt(x**2 + y**2)
+        phi = np.arctan2(y,x)
+        vphi = -np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))
+        R_g = (R*vphi/vc).to(u.kpc)
+        
+        E_ran_var = E_ran/(E_ran[0])   #calculating final stuff for the plot
+        R_var = R - CR
+        R_g_var = R_g - CR
+        
+        ax1.plot(t, Lam, c='purple')
+        ax2.plot(t, E_ran_var, c='b')
+        ax3.plot(t, R_var, c='r', ls='dashed')
+        ax3.plot(t, R_g_var, c='black')
+        
+        plt.show()
         
     def doAllThings(self):
             
