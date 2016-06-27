@@ -175,6 +175,7 @@ VecDoub accel(int ndim, VecDoub qp, double tnow, double CR, float thetain, float
    
    /* Pitch angle enterd in degrees [rad] */
    const Doub theta = thetain *2.*PI/360. ;
+<<<<<<< HEAD
    const Doub R= pow( pow(qp[0],2) + pow(qp[1],2), 0.5);
    
    const Doub Sig0 = 50. *exp(Rsun/Rd)/pow(pc2kpc,2) ; // Scale for surface density [Msun kpc^-2]
@@ -182,6 +183,13 @@ VecDoub accel(int ndim, VecDoub qp, double tnow, double CR, float thetain, float
    const Doub SigR = Sig0 *exp(-R/Rd) ; // Surface brightness at CR [Msun kpc^-2]
    const Doub alpha = m /tan(theta) ;
    const Doub A = 2.*PI*G*SigR*epsilon*R/alpha ;
+=======
+   
+   const Doub Sig0 = 50. *exp(Rsun/Rd)/pow(pc2kpc,2) ; // Scale for surface density [Msun kpc^-2]
+   const Doub SigCR = Sig0 *exp(-CR/Rd) ; // Surface brightness at CR [Msun kpc^-2]
+   const Doub alpha = m /tan(theta) ;
+   const Doub A = 2.*PI*G*SigCR*epsilon*CR/alpha ;
+>>>>>>> Luke
    
    /* Define accelation */
    VecDoub a(ndim);
