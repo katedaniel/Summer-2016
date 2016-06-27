@@ -71,6 +71,7 @@ _______________________________________________________________________________
 import astropy.units as u
 import astropy.constants as const
 import numpy as np
+from scipy import interpolate
 import matplotlib.pyplot as plt
 from timeit import default_timer
 from numpy import arange
@@ -93,8 +94,6 @@ RSun = 8 *u.kpc                 # Solar galactocentric radius
 SigmaSun = 50 *u.Msun /u.pc**2  # Surface density at the solar radius
 Rd = 2.5 *u.kpc                 # Scale length of the disk 
   
-#Disk parameters (You can toggle these), Other parameters specified in constructor
-theta = 25 *u.degree
 
 class Orbit_Calculator(object):
 
@@ -102,7 +101,7 @@ class Orbit_Calculator(object):
 #Constructor
 ################################################################################
 
-    def __init__(self,m1,IntTime1,CR1,epsilon1,x01,y01,vx01,vy01):
+    def __init__(self,m1,theta1,IntTime1,CR1,epsilon1,x01,y01,vx01,vy01):
         
         #The arguments given are assigned to global variables.
         #This is obviously not the best way to use global variables in a class,
@@ -121,9 +120,11 @@ class Orbit_Calculator(object):
         global NSteps                  
         global T
         global OmegaCR
+        global theta 
         
         #Assign global variables
         m = int(m1)
+        theta = theta1*u.degree
         IntTime = IntTime1*u.Gyr
         CR = CR1*u.kpc
         epsilon = epsilon1
@@ -245,7 +246,8 @@ class Orbit_Calculator(object):
         for i in xrange(0,m):
             radius = (CR/u.kpc)*np.exp((-m*(t)+np.pi)/alpha)
             ax.plot(radius*np.cos(t+2*np.pi*i/m),radius*np.sin(t+2*np.pi*i/m), color="purple",ls='dotted')   
-            
+        return
+          
 # Convert coordinates from NR-frame to R-frame
     def __toRframe(self,qpl):  
         
@@ -298,6 +300,7 @@ class Orbit_Calculator(object):
           
         duration = default_timer() - start 
         print "time: %s s" % str(duration)
+        return
 
 # Returns qp                 
     def getqp(self):
@@ -317,15 +320,23 @@ class Orbit_Calculator(object):
         global qpR
         qp = qps
         qpR = self.__toRframe(qp)
-        NSteps = qp
-                
+        return
+        
 # Saves data from non-rotating frame in dump file  
 # Remember that each computer has a different file path    
+<<<<<<< HEAD
     def saveData(self):
     
         filename = "qp_(m=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
         str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
         np.save("/Users/kathrynetolfree/Documents/Projects/Scattering/qpDump/%s" % filename,qp) 
+=======
+    def saveData(self,filepath,):
+        filename = "qp_(m=%s)_(th=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
+        str(theta/u.degree),str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
+        np.save(filepath + filename,qp) 
+        return
+>>>>>>> Luke
         
 # Plots the orbit  
 # For plot of orbit in non-rotating frame, enter 0 as the plot option
@@ -389,21 +400,14 @@ class Orbit_Calculator(object):
             qps = qp
         elif plotOption==1:
             qps = qpR
-            
             [Rgx,Rgy] = self.findRg()
             plt.plot(Rgx,Rgy,color="black", markevery=500, marker='.', ms=8)
-        
         else:
-            return fig, ax
-            
+            return fig, ax  
         plt.plot(qps[:,0],qps[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
-        return fig, ax
         
-    def doAllThings(self):
-            
-        self.makeOrbit()
-        self.saveData()
-        self.plot(1)
+        return fig, ax
+    
         
     def findEj(self):
         
@@ -429,6 +433,7 @@ class Orbit_Calculator(object):
         
         
     def Capture(self):
+        
         #pulling info out of qp
         x = qp[:,0]*u.kpc
         y = qp[:,1]*u.kpc
@@ -471,6 +476,7 @@ class Orbit_Calculator(object):
         return np.array(Lam_nc2)
         
     def Phi_eff(self):
+        
         #pulling info out of qp
         x = qp[:,0]*u.kpc
         y = qp[:,1]*u.kpc
@@ -489,6 +495,7 @@ class Orbit_Calculator(object):
         return phi_eff
         
     def test(self):
+        
         delta = 0.25
         x_range = arange(-13.0, 13.0, delta)
         y_range = arange(-13.0, 13.0, delta)
@@ -502,9 +509,11 @@ class Orbit_Calculator(object):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         ax.plot_wireframe(X,Y,potential - 0.5*(OmegaCR*R)**2)#plots phi_eff
+        return
 
 # Calculates position of guiding radius in rotating frame        
     def findRg(self):
+        
         #pulling info out of qp
         x = qp[:,0]*u.kpc
         y = qp[:,1]*u.kpc
@@ -517,4 +526,21 @@ class Orbit_Calculator(object):
         xR = R_g *np.cos(phiR)
         yR = R_g *np.sin(phiR)
         return np.array([xR,yR])
+        
+    def Poincare(self):
+        plt.close('all')
+        yspline = interpolate.splrep(qp[:,4], qpR[:,1], s=0)
+        roots = interpolate.sproot(yspline)
+        if len(roots)==0:
+            return 
+        xspline = interpolate.splrep(qp[:,4], qpR[:,0], s=0)
+        vxspline = interpolate.splrep(qp[:,4], qpR[:,2], s=0)
+        x = interpolate.splev(roots, xspline)
+        vx = interpolate.splev(roots, vxspline)
+        plt.scatter(x,vx)
+        plt.show()
+        return 
+        
+        
+       
         
