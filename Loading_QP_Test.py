@@ -1,27 +1,34 @@
 import numpy as np
+import os
 import Orbit_Code 
 reload(Orbit_Code)
 
+#from string of filename, return array of initial conditions
 def parseFilename(filename):
-   
     parts = filename.split("=")
-    args = []
+    args = np.empty(len(parts)-1)
     for l in range(1, len(parts)):
         num = float(parts[l].split(")")[0])
-        args.append(num)
+        args[l-1] = num
     return args
-    
+      
+#from list of filenames, return matrix of initial conditions    
+def parseList(files):
+    table = np.empty([len(files),9])
+    for l in range(0,len(files)):
+        table[l] = parseFilename(files[l])
+    return table
+             
 filepath = "/Users/LBarbano/Desktop/QP_Dump/"
+files = os.listdir(filepath)[1:]
+table = parseList(files)
 
-#Copy and paste the filename of the desired qp file here
-filename = "qp_(m=4)_(th=25.0)_(t=5.0)_(CR=8.0)_(eps=0.4)_(x0=7.8)_(y0=0.0)_(vx0=3.0)_(vy0=230.0).npy"
-filename = "qp_(m=4)_(th=25)_(t=2)_(CR=8)_(eps=0.3)_(x0=8)_(y0=0)_(vx0=3)_(vy0=223).txt"
+a = table[-1,:]
 
-filename = filepath + filename 
-a = parseFilename(filename)
 orbit = Orbit_Code.Orbit_Calculator(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8])
-f = np.loadtxt(filename)
+f = np.load(filepath + files[-1])
 
-#orbit.setqp(f)
-#orbit.plot(1)
+orbit.setqp(f)
+orbit.plot(1)
 #orbit.Poincare()
+ 
