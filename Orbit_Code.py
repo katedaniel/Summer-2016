@@ -131,7 +131,7 @@ class Orbit_Calculator(object):
         OmegaCR = vc/CR
         
         #Some time related stuff
-        StepTime = 100.*u.yr                          #Time between each calculation   
+        StepTime = 100000.*u.yr                          #Time between each calculation   
         IntTimeUnitless = (IntTime/u.yr).decompose()     #Simulation time
         NSteps = np.rint((IntTime/StepTime).decompose()) #Integer number of total steps to take
         T = np.linspace(0,IntTimeUnitless,NSteps)        #Time values
