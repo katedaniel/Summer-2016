@@ -1,10 +1,14 @@
+import time
+import matplotlib.pyplot as plt
+
 import astropy.units as u
 import astropy.constants as const
 import numpy as np
 
-RMax = 15. *u.kpc # Maximum radius, used to produce envelope function
-N = 2 # Number of runs
-n = 10 # Number of orbits per simulation
+NRun = 2 # Number of runs
+NOrbit = 10 # Number of orbits per simulation
+MasterOutName = "./QP_Dump/MC_Orbits_Master.npy"
+
 
 ################################################################################
 # Defining some constants
@@ -21,10 +25,19 @@ vc = 220. *u.km /u.s             # Circular velocity of the disk
 RSun = 8. *u.kpc                 # Solar galactocentric radius
 SigmaSun = 50. *u.Msun /u.pc**2  # Surface density at the solar radius
 sigmaSun = 30. *u.km /u.s        # Velocity dispersion at the solar radius
-Rd = 2.5 *u.kpc                 # Scale length of the disk surface density
-Rs = 3.*Rd                      # Scale length for the velocity dispersion
-Rp = 1. *u.kpc                  # Scale length of the disk potential
+Rd = 2.5 *u.kpc                  # Scale length of the disk surface density
+Rs = 3.*Rd                       # Scale length for the velocity dispersion
+Rp = 1. *u.kpc                   # Scale length of the disk potential
+RMax = 15. *u.kpc                # Maximum radius, used to produce envelope function
 
+################################################################################
+# Helpful little timer
+################################################################################
+
+def timer(start,end):
+    hours, rem = divmod(end-start, 3600)
+    minutes, seconds = divmod(rem, 60)
+    return "{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds)
 
 ################################################################################
 # Definitions to calculate stellar paremeters
@@ -127,7 +140,6 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
                 if (Eran/(u.km/u.s)**2 > 0):
                     vran = np.sqrt(2.*Eran) # Find amplitude of random velocity (km/s)
                     if (vran < 2.*findVelocityDispersion(3.*Rd)):
-                        print '|v_ran| = ', vran
                         vranx = vran *np.cos(vangle) # x-component of random velocity (km/s)
                         vrany = vran *np.sin(vangle) # y-component of random velocity (km/s)
                         vcx = vc *np.cos(rangle) # x-component of circular velocity (km/s)
@@ -147,5 +159,15 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
                         nOK = 1
     return qp0    
 
-qp0= getMCqp0()
-print qp0
+nRun = 1
+starttime = time.time()
+while nRun < NRun+1:
+    AOut = []
+    nOrbit = 1
+    while nOrbit < NOrbit+1:
+        qp0 = getMCqp0()
+        AOut.append([qp0[0],qp0[1],qp0[2],qp0[3],nRun,nOrbit])
+        print "Orbit # ", nOrbit, "| Run # ", nRun, "| Time Elapsed: ", timer(starttime,time.time()), "| ", round(100.*(float(nRun-1)*float(NOrbit) + (nOrbit-1))/float(NRun*NOrbit),1), "% Finished |"
+        nOrbit = nOrbit+1
+    nRun = nRun +1
+np.save(MasterOutName,AOut)
