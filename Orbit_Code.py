@@ -242,7 +242,8 @@ class Orbit_Calculator(object):
         for i in xrange(0,m):
             radius = (CR/u.kpc)*np.exp((-m*(t)+np.pi)/alpha)
             ax.plot(radius*np.cos(t+2*np.pi*i/m),radius*np.sin(t+2*np.pi*i/m), color="purple",ls='dotted')   
-            
+        return
+          
 # Convert coordinates from NR-frame to R-frame
     def __toRframe(self,qpl):  
         
@@ -295,6 +296,7 @@ class Orbit_Calculator(object):
           
         duration = default_timer() - start 
         print "time: %s s" % str(duration)
+        return
 
 # Returns qp                 
     def getqp(self):
@@ -314,6 +316,7 @@ class Orbit_Calculator(object):
         global qpR
         qp = qps
         qpR = self.__toRframe(qp)
+        return
         
 # Saves data from non-rotating frame in dump file  
 # Remember that each computer has a different file path    
@@ -321,6 +324,7 @@ class Orbit_Calculator(object):
         filename = "qp_(m=%s)_(th=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
         str(theta/u.degree),str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
         np.save(filepath + filename,qp) 
+        return
         
 # Plots the orbit  
 # For plot of orbit in non-rotating frame, enter 0 as the plot option
@@ -463,6 +467,7 @@ class Orbit_Calculator(object):
         
     def findLam(self):
         #pulling qp data
+
         x = qp[:,0]*u.kpc
         y = qp[:,1]*u.kpc
         vx = qp[:,2]*u.km/u.s
@@ -500,8 +505,10 @@ class Orbit_Calculator(object):
         print '[Lambda, E_j, phi_eff, L_z, E_tot, E_ran]'
         return np.array([Lam_nc2, E_j, phi_eff, L_z, E_tot, E_ran])
 
+
 # Calculates position of guiding radius in rotating frame        
     def findRg(self):
+        
         #pulling info out of qp
         x = qp[:,0]*u.kpc
         y = qp[:,1]*u.kpc
@@ -516,5 +523,15 @@ class Orbit_Calculator(object):
         return np.array([xR,yR])
         
     def Poincare(self):
-        tck, u = interpolate.splprep([qpR[:,0], qpR[:,1]], s=0)
-        return tck, u
+        plt.close('all')
+        yspline = interpolate.splrep(qp[:,4], qpR[:,1], s=0)
+        roots = interpolate.sproot(yspline)
+        if len(roots)==0:
+            return 
+        xspline = interpolate.splrep(qp[:,4], qpR[:,0], s=0)
+        vxspline = interpolate.splrep(qp[:,4], qpR[:,2], s=0)
+        x = interpolate.splev(roots, xspline)
+        vx = interpolate.splev(roots, vxspline)
+        plt.scatter(x,vx)
+        plt.show()
+        return 
