@@ -170,6 +170,5 @@ while nRun < NRun+1:
         print "Orbit # ", nOrbit, "| Run # ", nRun, "| Time Elapsed: ", timer(starttime,time.time()), "| ", round(100.*(float(nRun-1)*float(NOrbit) + (nOrbit-1))/float(NRun*NOrbit),1), "% Finished |"
         nOrbit = nOrbit+1
     nRun = nRun +1
-#initials = '%s %s %s %s' % (str(AOut[0][0]), str(AOut[0][1]), str(AOut[0][2]), str(AOut[0][3]),)
 initials = AOut[0][0:4]
 np.savetxt(MasterOutName,initials, delimiter="", fmt="%s", newline=" ")
