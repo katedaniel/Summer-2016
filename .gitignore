@@ -214,3 +214,6 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+*.txt
+*.npy
+qp_file/qp_(m=4)_(th=25)_(t=2)_(CR=8)_(eps=0.3)_(x0=7.8)_(y0=0)_(vx0=3)_(vy0=223).dat
