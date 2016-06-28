@@ -27,7 +27,27 @@ VecDoub accel(int ndim, VecDoub qp, double tnow, double CR, float thetain, float
 /***********************************************/
 /* Main program that controls output and steps */
 /***********************************************/
-int main() {
+int main() 
+{
+    
+    float a, b, c, d, e, f, g, h, i;
+
+    ifstream table;
+    table.open("C:/Trapped_Orbital_Integrator/temp.txt");
+
+    table >> a;
+    table >> b;
+    table >> c;
+    table >> d;
+    table >> e;
+    table >> f;
+    table >> g;
+    table >> h;
+    table >> i;
+
+    cout << a << " " << b << " " << c << " " << d << " " << e << " " << f << " " << g << " " << h << " " << i << endl;
+
+    table.close();
    
  /* Declare input variables */
    int ndim = 2; // Number of dimentions (x,y)
@@ -43,47 +63,39 @@ int main() {
  /* Initial conditions */
    tnow = 0.; // Set initial time [yrs]
  // Initial position in (x,y) coords
-   cout << "Enter x(t=0) [kpc]: ";
    float x0;
-   cin >> x0;
+   x0 = f;
    qp[0] = x0; // x(t=0) [kpc]
-   cout << "Enter y(t=0) [kpc]: ";
    float y0;
-   cin >> y0;
+   y0 = g;
    qp[1] = y0; // y(t=0) [kpc]
  // Initial velocity in the inertial frame
-   cout << "Enter v_x(t=0) in the inertial frame [km/s]: ";
    float vx0;
-   cin >> vx0;
+   vx0 = h;
    qp[2] = vx0*km2kpc*yr2sec; // v_x0 = dx/dt|_(t=0) [kpc/yr]
-   cout << "Enter v_y(t=0) in the inertial frame [km/s]: ";
    float vy0;
-   cin >> vy0;
+   vy0 = i;
    qp[3] = vy0*km2kpc*yr2sec; // v_y0 = dy/dt|_(t=0) [kpc/yr]
  // Spiral description
-   cout << "Enter radius of corotation (CR) [kpc]: ";
    double CR;
-   cin >> CR;
-   cout << "Enter pitch angle [degrees]: ";
+   CR = d;
    float thetain;
-   cin >> thetain;
-   cout << "Enter spiral fractional amplitude (epsilon): ";
+   thetain = b;
    float epsilon;
-   cin >> epsilon;
-   cout << "Enter number of arms (m): ";
+   epsilon = e;
    int m;
-   cin >> m;
+   m = a;
 
  /* Set intigration parameters */
    float ttot = 2e9; // Total time for integration [yrs]
    double dt = 1.e2; // Timestep for integration [yrs]
    int mstep = round(ttot/dt); // Number of steps to take
-   int outputnumber = 200; // Number of outputs
+   int outputnumber = 2000; // Number of outputs
    int nout = floor(mstep/outputnumber); // Output density=number of steps between outputs
    
  /* Open file and write solution to it */
    stringstream ssdatfile (stringstream::in | stringstream::out);
-   ssdatfile << "QP_Dump/qp_(m=" << m << ")_(th=" << thetain << ")_(t=" << ttot/1e9 << ")_(CR=" << CR << ")_(eps="<< epsilon<<")_(x0=" << x0 << ")_(y0=" << y0 << ")_(vx0=" << vx0 << ")_(vy0=" << vy0 << ").txt";
+   ssdatfile << "qp_file/qp_(m=" << m << ")_(th=" << thetain << ")_(t=" << ttot/1e9 << ")_(CR=" << CR << ")_(eps="<< epsilon<<")_(x0=" << x0 << ")_(y0=" << y0 << ")_(vx0=" << vx0 << ")_(vy0=" << vy0 << ").txt";
    string datfile = ssdatfile.str();
    cout << datfile << '\n';
    
@@ -176,10 +188,13 @@ VecDoub accel(int ndim, VecDoub qp, double tnow, double CR, float thetain, float
    /* Pitch angle enterd in degrees [rad] */
    const Doub theta = thetain *2.*PI/360. ;
    
+   const Doub R= pow( pow(qp[0],2) + pow(qp[1],2), 0.5);
+     
    const Doub Sig0 = 50. *exp(Rsun/Rd)/pow(pc2kpc,2) ; // Scale for surface density [Msun kpc^-2]
    const Doub SigCR = Sig0 *exp(-CR/Rd) ; // Surface brightness at CR [Msun kpc^-2]
+   const Doub SigR = Sig0 *exp(-R/Rd) ; // Surface brightness at CR [Msun kpc^-2]
    const Doub alpha = m /tan(theta) ;
-   const Doub A = 2.*PI*G*SigCR*epsilon*CR/alpha ;
+   const Doub A = 2.*PI*G*SigR*epsilon*R/alpha ;
    
    /* Define accelation */
    VecDoub a(ndim);
