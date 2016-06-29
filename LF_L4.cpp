@@ -30,17 +30,22 @@ VecDoub accel(int ndim, VecDoub qp, double tnow, double CR, float thetain, float
 int main() 
 {
     
-    float a, b, c, d;
+    float a, b, c, d, e, f, g, h, i;
 
     ifstream table;
-    table.open("temp.txt");
+    table.open(".\temp_initials.txt");
 
     table >> a;
     table >> b;
     table >> c;
     table >> d;
+    table >> e;
+    table >> f;
+    table >> g;
+    table >> h;
+    table >> i;
 
-    cout << a << " " << b << " " << c << " " << d << endl;
+    cout << a << " " << b << " " << c << " " << d << " " << e << " " << f << " " << g << " " << h << " " << i << endl;
 
     table.close();
    
@@ -59,27 +64,27 @@ int main()
    tnow = 0.; // Set initial time [yrs]
  // Initial position in (x,y) coords
    float x0;
-   x0 = a;
+   x0 = f;
    qp[0] = x0; // x(t=0) [kpc]
    float y0;
-   y0 = b;
+   y0 = g;
    qp[1] = y0; // y(t=0) [kpc]
  // Initial velocity in the inertial frame
    float vx0;
-   vx0 = c;
+   vx0 = h;
    qp[2] = vx0*km2kpc*yr2sec; // v_x0 = dx/dt|_(t=0) [kpc/yr]
    float vy0;
-   vy0 = d;
+   vy0 = i;
    qp[3] = vy0*km2kpc*yr2sec; // v_y0 = dy/dt|_(t=0) [kpc/yr]
  // Spiral description
    double CR;
-   CR = 8.0;
+   CR = d;
    float thetain;
-   thetain = 25.0;
+   thetain = b;
    float epsilon;
-   epsilon = 0.3;
+   epsilon = e;
    int m;
-   m = 4;
+   m = a;
 
  /* Set intigration parameters */
    float ttot = 2e9; // Total time for integration [yrs]
