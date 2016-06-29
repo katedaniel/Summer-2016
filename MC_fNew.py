@@ -7,7 +7,7 @@ import numpy as np
 
 NRun = 1 # Number of runs
 NOrbit = 1 # Number of orbits per simulation
-MasterOutName = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/temp.txt"
+MasterOutName = "./temp_initials.txt"
 
 
 ################################################################################
