@@ -140,8 +140,8 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
                 if (Eran/(u.km/u.s)**2 > 0):
                     vran = np.sqrt(2.*Eran) # Find amplitude of random velocity (km/s)
                     if (vran < 2.*findVelocityDispersion(3.*Rd)):
-                        vranx = vran *np.cos(vangle) # x-component of random velocity (km/s)
-                        vrany = vran *np.sin(vangle) # y-component of random velocity (km/s)
+                        vranx = -vran *np.cos(vangle) # x-component of random velocity (km/s)
+                        vrany = -vran *np.sin(vangle) # y-component of random velocity (km/s)
                         vcx = vc *np.cos(rangle+pi/2.) # x-component of circular velocity (km/s)
                         vcy = vc *np.sin(rangle+pi/2.) # y-component of circualar velocity (km/s)
                         vx0 = vcx + vranx # initial x-component of velocity vector in N-frame (km/s)
@@ -175,6 +175,7 @@ while nRun < NRun+1:
         vtot = np.sqrt(qp0[2]**2 + qp0[3]**2)
         vr = vtot*np.cos(alph)
         vphi = vtot*np.sin(alph)
+        print 'v_R = ', vr, '| v_phi = ', vphi
         #print "Orbit # ", nOrbit, "| Run # ", nRun, "| Time Elapsed: ", timer(starttime,time.time()), "| ", round(100.*(float(nRun-1)*float(NOrbit) + (nOrbit-1))/float(NRun*NOrbit),1), "% Finished |"
         nOrbit = nOrbit+1
     nRun = nRun +1
