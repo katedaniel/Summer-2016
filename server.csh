@@ -1,5 +1,3 @@
-#!/bin/csh
-
 module load python
 module load all-pkgs
 module load AstroPy
