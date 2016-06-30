@@ -12,6 +12,7 @@ ls -l
 #do
 python ./MC_fNew.py
 ./LF_L4
+ls -l qp_file_$1
 #done
 
 tar czf qp_file_$1.tar.gz qp_file_$1/*
