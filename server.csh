@@ -6,7 +6,7 @@ mkdir qp_file_$1
 
 ls -l
 #magical forloop
-python ./MC_fnew.py
+python ./MC_fNew.py
 ./LF_L4
 
 tar czf qp_file_$1.tar.gz qp_file_$1
