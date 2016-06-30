@@ -90,7 +90,7 @@ int main()
    
  /* Open file and write solution to it */
    stringstream ssdatfile (stringstream::in | stringstream::out);
-   ssdatfile << "qp_file/qp_(m=" << m << ")_(th=" << thetain << ")_(t=" << ttot/1e9 << ")_(CR=" << CR << ")_(eps="<< epsilon<<")_(x0=" << x0 << ")_(y0=" << y0 << ")_(vx0=" << vx0 << ")_(vy0=" << vy0 << ").txt";
+   ssdatfile << "./qp_file/qp_(m=" << m << ")_(th=" << thetain << ")_(t=" << ttot/1e9 << ")_(CR=" << CR << ")_(eps="<< epsilon<<")_(x0=" << x0 << ")_(y0=" << y0 << ")_(vx0=" << vx0 << ")_(vy0=" << vy0 << ").txt";
    string datfile = ssdatfile.str();
    cout << datfile << '\n';
    
