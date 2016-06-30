@@ -8,11 +8,11 @@ module load AstroPy
 mkdir qp_file_$1
 
 ls -l
-#for i in {1..300}
-#do
-python ./MC_fNew.py
-./LF_L4
-ls -l qp_file_$1
-#done
+for i in {1..2}
+do
+    python ./MC_fNew.py
+    ./LF_L4
+done
 
+ls -l qp_file_$1/
 tar czf qp_file_$1.tar.gz qp_file_$1/*
