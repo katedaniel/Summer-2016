@@ -9,7 +9,7 @@ NRun = 2 # Number of runs
 NOrbit = 5 # Number of orbits per simulation
 MasterOutName = "./QP_Dump/MC_Orbits_Master.npy"
 '''
-MasterOutName = "./temp_iniitals.txt"
+MasterOutName = "./temp_initials.txt"
 
 
 ################################################################################
@@ -190,5 +190,5 @@ AOut = []
 qp0 = getMCqp0()
 AOut.append([qp0[0],qp0[1],qp0[2],qp0[3]])
 initials = AOut[0]
-np.savetxt(MasterOutName,initials, delimeter="", fmt="%s", newline=" ")
+np.savetxt(MasterOutName,initials, delimiter="", fmt="%s", newline=" ")
 
