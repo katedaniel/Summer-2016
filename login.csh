@@ -9,5 +9,5 @@ module load gcc
 g++ LF_L4.cpp -o LF_L4
 chmod +x /LF_L4
 
-condor_submit filenamesubmit
+condor_submit TrappedOrbits.submit
 condor_q kjdaniel

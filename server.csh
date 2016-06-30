@@ -10,5 +10,5 @@ mkdir qp_file_$1
 python MC_fnew.py
 ./LF_L4
 
-tar czf runNfilename.tar.gz qp*
+tar czf qp_file_$1.tar.gz qp_file_$1
 
