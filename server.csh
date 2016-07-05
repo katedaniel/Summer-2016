@@ -17,4 +17,5 @@ done
 
 ls -l qp_file/
 mv !$ qp_file_$1/
-tar -czf qp_file_$1.tar.gz qp_file_$1/
+ls -l qp_file_$1/
+tar -czf qp_file_$1.tar.gz qp_file_$1
