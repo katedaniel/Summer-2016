@@ -1,0 +1,18 @@
+universe = vanilla
++ProjectName="TrappedOrbits"
+
+output = TrappedOrbits.out.$(Process)
+error = TrappedOrbits.err.$(Process)
+log = TrappedOrbits.log
+executable = server.csh
+arguments=$(Process)
+
+requirements = CVMFS_oasis_opensciencegrid_org_REVISION >= 5804 && HAS_MODULES == True
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files = MC_fNew.py,LF_L4.cpp,nr3.h,svd.h,ran.h
+
+request_disk = 1GB
+
+queue 1

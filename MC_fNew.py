@@ -9,6 +9,7 @@ NRun = 2 # Number of runs
 NOrbit = 5 # Number of orbits per simulation
 MasterOutName = "./QP_Dump/MC_Orbits_Master.npy"
 '''
+
 MasterOutName = "./temp_initials.txt"
 
 
@@ -26,7 +27,7 @@ G = const.G
 vc = 220. *u.km /u.s             # Circular velocity of the disk
 RSun = 8. *u.kpc                 # Solar galactocentric radius
 SigmaSun = 50. *u.Msun /u.pc**2  # Surface density at the solar radius
-sigmaSun = 30. *u.km /u.s        # Velocity dispersion at the solar radius
+sigmaSun = 35. *u.km /u.s        # Velocity dispersion at the solar radius
 Rd = 2.5 *u.kpc                  # Scale length of the disk surface density
 Rs = 3.*Rd                       # Scale length for the velocity dispersion
 Rp = 1. *u.kpc                   # Scale length of the disk potential
@@ -136,21 +137,21 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
         utest = np.random.random()
         # If utest < AcceptProb then accept these values for E and Lz
         if utest < AcceptProb:
-            rangle = 2.*pi *np.random.random() # Produce direction for position vector
-            vangle = 2.*pi *np.random.random() # Produce direction for velocity vector
             RL = findRL(iLz)/u.kpc
             if (RL > 4) and (RL < 12):
                 Eran = findEran(iE,iLz) # Find random energy(km/s)^2
                 if (Eran/(u.km/u.s)**2 > 0):
                     vran = np.sqrt(2.*Eran) # Find amplitude of random velocity (km/s)
                     if (vran < 2.*findVelocityDispersion(3.*Rd)):
+                        rangle = 2.*pi *np.random.uniform() # Produce direction for position vector
+                        vangle = 2.*pi *np.random.uniform() # Produce direction for velocity vector
+                        alph = vangle - rangle # angle between position and velocity vectors
                         vranx = vran *np.cos(-vangle) # x-component of random velocity (km/s)
                         vrany = vran *np.sin(-vangle) # y-component of random velocity (km/s)
                         vcx = vc *np.cos(rangle+pi/2.) # x-component of circular velocity (km/s)
                         vcy = vc *np.sin(rangle+pi/2.) # y-component of circualar velocity (km/s)
                         vx0 = vcx + vranx # initial x-component of velocity vector in N-frame (km/s)
                         vy0 = vcy + vrany # initial y-component of velocity vector in N-frame (km/s)
-                        alph = vangle - rangle # angle between position and velocity vectors
                         v_tot = np.sqrt(vx0**2 + vy0**2) # amplitude of velocity vector in N-frame (km/s)
                         vphi = v_tot*np.sin(alph) # azimuthal velocity
                         vR = v_tot*np.cos(alph)
@@ -167,7 +168,7 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
 
 '''
 nRun = 1
-starttime = time.time()
+#starttime = time.time()
 while nRun < NRun+1:
     AOut = []
     nOrbit = 1
