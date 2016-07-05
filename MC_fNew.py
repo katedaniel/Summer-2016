@@ -1,19 +1,17 @@
 import time
-import matplotlib.pyplot as plt
-
 import astropy.units as u
 import astropy.constants as const
 import numpy as np
 
 NRun = 1 # Number of runs
-NOrbit = 10 # Number of orbits per simulation
-filepath = "/Users/LBarbano/Desktop/QP_Dump/"
-MasterOutName = filepath+ "MC_Orbits_Master.npy"
+NOrbit = 1000 # Number of orbits per simulation
+filepath = "/Users/LBarbano/Desktop/QP_Dump2/"
+MasterOutName = filepath+ "MC_Orbits_MasterTest" +str(NOrbit)+".npy"
 
 ################################################################################
 # Defining some constants
 ################################################################################
-pi = np.pi
+pi = np.pi 
 G = const.G
 
 ################################################################################
@@ -140,36 +138,41 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
                 if (Eran/(u.km/u.s)**2 > 0):
                     vran = np.sqrt(2.*Eran) # Find amplitude of random velocity (km/s)
                     if (vran < 2.*findVelocityDispersion(3.*Rd)):
-                        vranx = vran *np.cos(vangle) # x-component of random velocity (km/s)
-                        vrany = vran *np.sin(vangle) # y-component of random velocity (km/s)
-                        vcx = vc *np.cos(rangle) # x-component of circular velocity (km/s)
-                        vcy = vc *np.sin(rangle) # y-component of circualar velocity (km/s)
+                        vranx = vran *np.cos(-vangle) # x-component of random velocity (km/s)
+                        vrany = vran *np.sin(-vangle) # y-component of random velocity (km/s)
+                        vcx = vc *np.cos(rangle+pi/2.) # x-component of circular velocity (km/s)
+                        vcy = vc *np.sin(rangle+pi/2.) # y-component of circualar velocity (km/s)
                         vx0 = vcx + vranx # initial x-component of velocity vector in N-frame (km/s)
                         vy0 = vcy + vrany # initial y-component of velocity vector in N-frame (km/s)
-                        alph = rangle - vangle # angle between position and velocity vectors
+                        alph = vangle - rangle # angle between position and velocity vectors
                         v_tot = np.sqrt(vx0**2 + vy0**2) # amplitude of velocity vector in N-frame (km/s)
-                        vphi = -v_tot*np.sin(alph) # azimuthal velocity
+                        vphi = v_tot*np.sin(alph) # azimuthal velocity
+                        vR = v_tot*np.cos(alph)
                         R = iLz/vphi
-                        x0 = R *np.cos(rangle)/(u.kpc)
-                        y0 = R *np.sin(rangle)/(u.kpc)
-                        # Get rid of explicit units
-                        vx0 = vx0/(u.km/u.s)
-                        vy0 = vy0/(u.km/u.s)
-                        qp0 = np.array([x0,y0,vx0,vy0])
-                        nOK = 1
-    return qp0    
+                        if  (R/u.kpc > 2) and (R/u.kpc < 15):
+                            x0 = R *np.cos(rangle)/(u.kpc)
+                            y0 = R *np.sin(rangle)/(u.kpc)
+                            # Get rid of explicit units
+                            vx0 = vx0/(u.km/u.s)
+                            vy0 = vy0/(u.km/u.s)
+                            qp0 = np.array([x0,y0,vx0,vy0])
+                            nOK = 1
+    return qp0 
+def generateConditions():
+    print("Calculating...")
+    nRun = 1
+    starttime = time.time()
+    while nRun < NRun+1:
+        AOut = []
+        nOrbit = 1
+        while nOrbit < NOrbit+1:
+            qp0 = getMCqp0()
+            AOut.append([qp0[0],qp0[1],qp0[2],qp0[3],nRun,nOrbit])
+            #print "Orbit # ", nOrbit, "| Run # ", nRun, "| Time Elapsed: ", timer(starttime,time.time()), "| ", round(100.*(float(nRun-1)*float(NOrbit) + (nOrbit-1))/float(NRun*NOrbit),1), "% Finished |"
+            nOrbit = nOrbit+1
+        nRun = nRun +1
+    print ("Duration: " + str(timer(starttime,time.time())))
+    np.save(MasterOutName,AOut)
+    return
+    
 
-nRun = 1
-starttime = time.time()
-while nRun < NRun+1:
-    AOut = []
-    nOrbit = 1
-    while nOrbit < NOrbit+1:
-        qp0 = getMCqp0()
-        AOut.append([qp0[0],qp0[1],qp0[2],qp0[3],nRun,nOrbit])
-        #print "Orbit # ", nOrbit, "| Run # ", nRun, "| Time Elapsed: ", timer(starttime,time.time()), "| ", round(100.*(float(nRun-1)*float(NOrbit) + (nOrbit-1))/float(NRun*NOrbit),1), "% Finished |"
-        nOrbit = nOrbit+1
-    nRun = nRun +1
-print ("Duration: " + str(timer(starttime,time.time())))
-np.save(MasterOutName,AOut)
-x = np.load(MasterOutName)
