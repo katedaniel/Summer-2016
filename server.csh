@@ -5,7 +5,7 @@ chmod +x LF_L4
 module load python
 module load all-pkgs
 module load AstroPy
-mkdir qp_file_$1
+mkdir qp_file
 
 ls -l
 for i in {1..2}
