@@ -4,7 +4,7 @@ import astropy.constants as const
 import numpy as np
 
 NRun = 1 # Number of runs
-NOrbit = 1000 # Number of orbits per simulation
+NOrbit = 10 # Number of orbits per simulation
 filepath = "/Users/LBarbano/Desktop/QP_Dump2/"
 MasterOutName = filepath+ "MC_Orbits_MasterTest" +str(NOrbit)+".npy"
 
@@ -130,21 +130,21 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
         utest = np.random.random()
         # If utest < AcceptProb then accept these values for E and Lz
         if utest < AcceptProb:
-            rangle = 2.*pi *np.random.random() # Produce direction for position vector
-            vangle = 2.*pi *np.random.random() # Produce direction for velocity vector
             RL = findRL(iLz)/u.kpc
             if (RL > 4) and (RL < 12):
                 Eran = findEran(iE,iLz) # Find random energy(km/s)^2
                 if (Eran/(u.km/u.s)**2 > 0):
                     vran = np.sqrt(2.*Eran) # Find amplitude of random velocity (km/s)
                     if (vran < 2.*findVelocityDispersion(3.*Rd)):
+                        rangle = 2.*pi *np.random.uniform() # Produce direction for position vector
+                        vangle = 2.*pi *np.random.uniform() # Produce direction for velocity vector
+                        alph = vangle - rangle # angle between position and velocity vectors
                         vranx = vran *np.cos(-vangle) # x-component of random velocity (km/s)
                         vrany = vran *np.sin(-vangle) # y-component of random velocity (km/s)
                         vcx = vc *np.cos(rangle+pi/2.) # x-component of circular velocity (km/s)
                         vcy = vc *np.sin(rangle+pi/2.) # y-component of circualar velocity (km/s)
                         vx0 = vcx + vranx # initial x-component of velocity vector in N-frame (km/s)
                         vy0 = vcy + vrany # initial y-component of velocity vector in N-frame (km/s)
-                        alph = vangle - rangle # angle between position and velocity vectors
                         v_tot = np.sqrt(vx0**2 + vy0**2) # amplitude of velocity vector in N-frame (km/s)
                         vphi = v_tot*np.sin(alph) # azimuthal velocity
                         vR = v_tot*np.cos(alph)
@@ -157,7 +157,8 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
                             vy0 = vy0/(u.km/u.s)
                             qp0 = np.array([x0,y0,vx0,vy0])
                             nOK = 1
-    return qp0 
+    return qp0    
+    
 def generateConditions():
     print("Calculating...")
     nRun = 1
@@ -175,4 +176,4 @@ def generateConditions():
     np.save(MasterOutName,AOut)
     return
     
-
+Aout = generateConditions()
