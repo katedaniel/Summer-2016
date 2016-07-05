@@ -1,12 +1,14 @@
-import time
-import matplotlib.pyplot as plt
+#import time
 
 import astropy.units as u
 import astropy.constants as const
 import numpy as np
 
-NRun = 1 # Number of runs
-NOrbit = 1 # Number of orbits per simulation
+'''
+NRun = 2 # Number of runs
+NOrbit = 5 # Number of orbits per simulation
+MasterOutName = "./QP_Dump/MC_Orbits_Master.npy"
+'''
 MasterOutName = "./temp_initials.txt"
 
 
@@ -30,14 +32,15 @@ Rs = 3.*Rd                       # Scale length for the velocity dispersion
 Rp = 1. *u.kpc                   # Scale length of the disk potential
 RMax = 15. *u.kpc                # Maximum radius, used to produce envelope function
 
+'''
 ################################################################################
 # Helpful little timer
 ################################################################################
-
 def timer(start,end):
     hours, rem = divmod(end-start, 3600)
     minutes, seconds = divmod(rem, 60)
     return "{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds)
+'''
 
 ################################################################################
 # Definitions to calculate stellar paremeters
@@ -107,7 +110,7 @@ def findfMax(E,Lz):
     Omega = vc/RE
     FrontStuff = Sigma/(np.sqrt(2)*pi*sigmaR**2)
     eStuff = Omega*(Lz-Lc)/sigmaR**2
-    fMax = FrontStuff *np.exp(eStuff)
+    fMax = FrontStuff #*np.exp(eStuff)
     return fMax
 
 ### Define max values for even distribution of E and Lz
@@ -140,25 +143,28 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
                 if (Eran/(u.km/u.s)**2 > 0):
                     vran = np.sqrt(2.*Eran) # Find amplitude of random velocity (km/s)
                     if (vran < 2.*findVelocityDispersion(3.*Rd)):
-                        vranx = vran *np.cos(vangle) # x-component of random velocity (km/s)
-                        vrany = vran *np.sin(vangle) # y-component of random velocity (km/s)
-                        vcx = vc *np.cos(rangle) # x-component of circular velocity (km/s)
-                        vcy = vc *np.sin(rangle) # y-component of circualar velocity (km/s)
+                        vranx = vran *np.cos(-vangle) # x-component of random velocity (km/s)
+                        vrany = vran *np.sin(-vangle) # y-component of random velocity (km/s)
+                        vcx = vc *np.cos(rangle+pi/2.) # x-component of circular velocity (km/s)
+                        vcy = vc *np.sin(rangle+pi/2.) # y-component of circualar velocity (km/s)
                         vx0 = vcx + vranx # initial x-component of velocity vector in N-frame (km/s)
                         vy0 = vcy + vrany # initial y-component of velocity vector in N-frame (km/s)
-                        alph = rangle - vangle # angle between position and velocity vectors
+                        alph = vangle - rangle # angle between position and velocity vectors
                         v_tot = np.sqrt(vx0**2 + vy0**2) # amplitude of velocity vector in N-frame (km/s)
-                        vphi = -v_tot*np.sin(alph) # azimuthal velocity
+                        vphi = v_tot*np.sin(alph) # azimuthal velocity
+                        vR = v_tot*np.cos(alph)
                         R = iLz/vphi
-                        x0 = R *np.cos(rangle)/(u.kpc)
-                        y0 = R *np.sin(rangle)/(u.kpc)
-                        # Get rid of explicit units
-                        vx0 = vx0/(u.km/u.s)
-                        vy0 = vy0/(u.km/u.s)
-                        qp0 = np.array([x0,y0,vx0,vy0])
-                        nOK = 1
+                        if  (R/u.kpc > 2) and (R/u.kpc < 15):
+                            x0 = R *np.cos(rangle)/(u.kpc)
+                            y0 = R *np.sin(rangle)/(u.kpc)
+                            # Get rid of explicit units
+                            vx0 = vx0/(u.km/u.s)
+                            vy0 = vy0/(u.km/u.s)
+                            qp0 = np.array([x0,y0,vx0,vy0])
+                            nOK = 1
     return qp0    
 
+'''
 nRun = 1
 starttime = time.time()
 while nRun < NRun+1:
@@ -167,8 +173,20 @@ while nRun < NRun+1:
     while nOrbit < NOrbit+1:
         qp0 = getMCqp0()
         AOut.append([qp0[0],qp0[1],qp0[2],qp0[3],nRun,nOrbit])
-        print "Orbit # ", nOrbit, "| Run # ", nRun, "| Time Elapsed: ", timer(starttime,time.time()), "| ", round(100.*(float(nRun-1)*float(NOrbit) + (nOrbit-1))/float(NRun*NOrbit),1), "% Finished |"
+        rangle = np.arctan2(qp0[1],qp0[0])
+        vangle = np.arctan2(qp0[3],qp0[2])
+        alph = vangle - rangle
+        vtot = np.sqrt(qp0[2]**2 + qp0[3]**2)
+        vr = vtot*np.cos(alph)
+        vphi = vtot*np.sin(alph)
+        print 'v_R = ', vr, '| v_phi = ', vphi, '| alpha = ', alph
+        #print "Orbit # ", nOrbit, "| Run # ", nRun, "| Time Elapsed: ", timer(starttime,time.time()), "| ", round(100.*(float(nRun-1)*float(NOrbit) + (nOrbit-1))/float(NRun*NOrbit),1), "% Finished |"
         nOrbit = nOrbit+1
     nRun = nRun +1
-initials = AOut[0][0:4]
+'''
+
+AOut = []
+qp0 = getMCqp0()
+AOut.append([qp0[0],qp0[1],qp0[2],qp0[3]])
+initials = AOut[0]
 np.savetxt(MasterOutName,initials, delimiter="", fmt="%s", newline=" ")
