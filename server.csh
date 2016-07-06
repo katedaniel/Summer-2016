@@ -9,7 +9,7 @@ mkdir qp_file
 mkdir qp_file_$1
 
 ls -l
-for i in {1..2}
+for i in {1..20}
 do
     python ./MC_fNew.py
     ./LF_L4
