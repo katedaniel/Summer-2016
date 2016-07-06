@@ -15,4 +15,4 @@ transfer_input_files = MC_fNew.py,LF_L4.cpp,nr3.h,svd.h,ran.h
 
 request_disk = 1GB
 
-queue 1
+queue 500
