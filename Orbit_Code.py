@@ -557,3 +557,14 @@ class Orbit_Calculator(object):
             else:
                 lam_spec  = 5 #FREE AT BEGINNING BUT NOT END
         return lam_spec
+    def findLz(self):
+        #use find_lam function to pull physical data
+        phys_dat = self.findLam()
+        Lz = phys_dat[3]
+        size = Lz.size
+        Lz_0 = Lz[0]
+        Lz_1 = Lz[(size/4.)]
+        Lz_2 = Lz[(size/2.)]
+        Lz_3 = Lz[(3.*size/4.)]
+        Lz_4 = Lz[(size)]
+        return np.array([Lz_0,Lz_1,Lz_2,Lz_3,Lz_4])
