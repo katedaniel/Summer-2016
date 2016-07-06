@@ -535,3 +535,25 @@ class Orbit_Calculator(object):
         plt.scatter(x,vx)
         plt.show()
         return 
+        
+    def Lam_special(self):
+        #use find_lam function to pull physical data
+        phys_dat = self.findLam()
+        Lam = phys_dat[0]
+        if np.absolute(Lam[0]) < 1.:  #starts trapped
+            if np.absolute(Lam[-1]) < 1.:  #ends trapped
+                if (np.absolute(Lam) < 1.).sum() == Lam.size: #always trapped
+                    lam_spec  = 0 #ALWAYS TRAPPED
+                else:
+                    lam_spec  = 1 #TRAPPED AT BEGINNING AND END, BUT NOT MIDDLE
+            else:
+                lam_spec  = 2 #TRAPPED AT BEGINNING BUT NOT END
+        if np.absolute(Lam[0]) >= 1.: #starts free
+            if np.absolute(Lam[-1]) >= 1.: #ends free
+                if (np.absolute(Lam) >= 1.).sum() > 0: #trapped at any point
+                    lam_spec  = 3 #FREE AT BEGINNING AND END, BUT NOT MIDDLE
+                else:
+                    lam_spec  = 4 #ALWAYS FREE
+            else:
+                lam_spec  = 5 #FREE AT BEGINNING BUT NOT END
+        return lam_spec
