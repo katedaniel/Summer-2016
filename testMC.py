@@ -27,7 +27,7 @@ def sort (radius,velocity):
 
 #Specify filepath to the initial conditions data
 filepath = "/Users/LBarbano/Desktop/QP_Dump2/"
-MCdata = np.load(filepath + "MC_Orbits_Master.npy")
+MCdata = np.load(filepath + "MC_Orbits_MasterTest1000.npy")
 
 x = MCdata[:,0]
 y = MCdata[:,1]

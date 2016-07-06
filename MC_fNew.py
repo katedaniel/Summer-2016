@@ -136,8 +136,8 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
                 if (Eran/(u.km/u.s)**2 > 0):
                     vran = np.sqrt(2.*Eran) # Find amplitude of random velocity (km/s)
                     if (vran < 2.*findVelocityDispersion(3.*Rd)):
-                        rangle = 2.*pi *np.random.uniform() # Produce direction for position vector
-                        vangle = 2.*pi *np.random.uniform() # Produce direction for velocity vector
+                        rangle = 2.*pi *np.random.random() # Produce direction for position vector
+                        vangle = 2.*pi *np.random.random() # Produce direction for velocity vector
                         alph = vangle - rangle # angle between position and velocity vectors
                         vranx = vran *np.cos(-vangle) # x-component of random velocity (km/s)
                         vrany = vran *np.sin(-vangle) # y-component of random velocity (km/s)
@@ -176,4 +176,4 @@ def generateConditions():
     np.save(MasterOutName,AOut)
     return
     
-Aout = generateConditions()
+#generateConditions()

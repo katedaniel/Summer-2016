@@ -514,6 +514,76 @@ class Orbit_Calculator(object):
         plt.show()
         return 
         
+    def findLam(self):
+        #pulling qp data
+
+        x = qp[:,0]*u.kpc
+        y = qp[:,1]*u.kpc
+        vx = qp[:,2]*u.km/u.s
+        vy = qp[:,3]*u.km/u.s
+        t = qp[:,4]*u.yr
+        #finding some preliminary variables
+        R = np.sqrt(x**2 + y**2)
+        phi = np.arctan2(y,x)
+        vphi = -np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))
+        R_g = (R*vphi/vc).to(u.kpc)
+        A = self.__findA(R).to((u.km/u.s)**2)
+        A_CR = self.__findA(CR).to((u.km/u.s)**2)
+        A_g = self.__findA(R_g).to((u.km/u.s)**2)
+        #finding potentials of the star and the guiding center
+        disk_potential = (vc**2)*np.log(R/u.kpc)
+        disk_potential_g = (vc**2)*np.log(R_g/u.kpc)
+        spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad + (m*OmegaCR*t)*u.rad -m*phi)
+        spiral_potential_g = A_g*np.cos(-alpha*np.log(R_g/CR)*u.rad + (m*OmegaCR*t)*u.rad -m*phi)
+        potential = disk_potential + spiral_potential
+        potential_g = disk_potential_g + spiral_potential_g
+        #finding total energy for the star and the guiding center
+        E_tot = potential + 0.5*(vx**2 + vy**2)
+        E_tot_g = potential_g + 0.5*(vc**2)
+        #finding E_j
+        L_z = R*vphi
+        E_j = (E_tot - OmegaCR*L_z).to((u.km/u.s)**2)
+        #finding E_ran
+        E_ran = E_tot - E_tot_g
+        #finding Lambda
+        Lam_c = (E_j[0] - hcr)/A_CR
+        Lam_nc2 = Lam_c - ((R_g/CR)*(E_ran/A_CR))
+        #finding effective potential
+        phi_eff = potential - 0.5*(OmegaCR*R)**2
+        #print and return
+        return np.array([Lam_nc2, E_j, phi_eff, L_z, E_tot, E_ran])
+
+    def Lam_special(self):
+        #use find_lam function to pull physical data
+        phys_dat = self.findLam()
+        Lam = phys_dat[0]
+        if np.absolute(Lam[0]) < 1.:  #starts trapped
+            if np.absolute(Lam[-1]) < 1.:  #ends trapped
+                if (np.absolute(Lam) < 1.).sum() == Lam.size: #always trapped
+                    lam_spec  = 0 #ALWAYS TRAPPED
+                else:
+                    lam_spec  = 1 #TRAPPED AT BEGINNING AND END, BUT NOT MIDDLE
+            else:
+                lam_spec  = 2 #TRAPPED AT BEGINNING BUT NOT END
+        if np.absolute(Lam[0]) >= 1.: #starts free
+            if np.absolute(Lam[-1]) >= 1.: #ends free
+                if (np.absolute(Lam) >= 1.).sum() > 0: #trapped at any point
+                    lam_spec  = 3 #FREE AT BEGINNING AND END, BUT NOT MIDDLE
+                else:
+                    lam_spec  = 4 #ALWAYS FREE
+            else:
+                lam_spec  = 5 #FREE AT BEGINNING BUT NOT END
+        return lam_spec    
         
-       
+    def findLz(self):
+        #use find_lam function to pull physical data
+        phys_dat = self.findLam()
+        Lz = phys_dat[3]
+        size = Lz.size
+        Lz_0 = Lz[0]
+        Lz_1 = Lz[(size/4.)]
+        Lz_2 = Lz[(size/2.)]
+        Lz_3 = Lz[(3.*size/4.)]
+        Lz_4 = Lz[(size-1)]
+        return np.array([Lz_0,Lz_1,Lz_2,Lz_3,Lz_4])
         
