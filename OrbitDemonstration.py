@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''
 This file demonstrates how to utilize the Orbit_Calculator Class.
 
@@ -36,7 +38,7 @@ Plot the orbit in the non-rotating or rotating frame. The plot method takes an
 argument of 0 to plot the star's orbit in the non-rotating frame and anything else for 
 the rotating frame.
 '''
-fig,ax = orbit.plot(2) 
+fig,ax = orbit.plot(1) 
 
 '''
 To plot the orbit in the rotating frame, it is not necessary to redo the 
@@ -52,14 +54,15 @@ We can also access qp and qpR with the following methods. qp and qpR will be
 stored in a and b respectively
 '''  
 
-a = orbit.getqp()
-b = orbit.getqpR()
+#a = orbit.getqp()
+#b = orbit.getqpR()
 
 '''
 Now we can save the data in the non-rotating frame to our dump folder by using the 
 saveData method. Specifcy a filepath as an argument when saving the data
 '''
-orbit.saveData("/Users/LBarbano/Desktop/QP_Dump/")
+
+orbit.saveData("C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/qp_file/")
 
 '''
 Finally, we can do all of these things simply with the method doAllThings()

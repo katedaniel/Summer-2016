@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import Orbit_Code
 reload(Orbit_Code)
 

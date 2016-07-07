@@ -392,8 +392,7 @@ class Orbit_Calculator(object):
             plt.plot(Rgx,Rgy,color="black", markevery=500, marker='.', ms=8)
         else:
             return fig, ax  
-        plt.plot(qps[:,0],qps[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
-        
+        plt.plot(qps[:,0],qps[:,1], color="SlateBlue", markevery=500, marker='.', ms=8)       
         return fig, ax
     
     ###Creates a plot of orbittal properties over time
@@ -467,7 +466,6 @@ class Orbit_Calculator(object):
         
     def findLam(self):
         #pulling qp data
-
         x = qp[:,0]*u.kpc
         y = qp[:,1]*u.kpc
         vx = qp[:,2]*u.km/u.s
@@ -505,7 +503,6 @@ class Orbit_Calculator(object):
         print '[Lambda, E_j, phi_eff, L_z, E_tot, E_ran]'
         return np.array([Lam_nc2, E_j, phi_eff, L_z, E_tot, E_ran])
 
-
 # Calculates position of guiding radius in rotating frame        
     def findRg(self):
         
@@ -535,36 +532,3 @@ class Orbit_Calculator(object):
         plt.scatter(x,vx)
         plt.show()
         return 
-        
-    def Lam_special(self):
-        #use find_lam function to pull physical data
-        phys_dat = self.findLam()
-        Lam = phys_dat[0]
-        if np.absolute(Lam[0]) < 1.:  #starts trapped
-            if np.absolute(Lam[-1]) < 1.:  #ends trapped
-                if (np.absolute(Lam) < 1.).sum() == Lam.size: #always trapped
-                    lam_spec  = 0 #ALWAYS TRAPPED
-                else:
-                    lam_spec  = 1 #TRAPPED AT BEGINNING AND END, BUT NOT MIDDLE
-            else:
-                lam_spec  = 2 #TRAPPED AT BEGINNING BUT NOT END
-        if np.absolute(Lam[0]) >= 1.: #starts free
-            if np.absolute(Lam[-1]) >= 1.: #ends free
-                if (np.absolute(Lam) >= 1.).sum() > 0: #trapped at any point
-                    lam_spec  = 3 #FREE AT BEGINNING AND END, BUT NOT MIDDLE
-                else:
-                    lam_spec  = 4 #ALWAYS FREE
-            else:
-                lam_spec  = 5 #FREE AT BEGINNING BUT NOT END
-        return lam_spec
-    def findLz(self):
-        #use find_lam function to pull physical data
-        phys_dat = self.findLam()
-        Lz = phys_dat[3]
-        size = Lz.size
-        Lz_0 = Lz[0]
-        Lz_1 = Lz[(size/4.)]
-        Lz_2 = Lz[(size/2.)]
-        Lz_3 = Lz[(3.*size/4.)]
-        Lz_4 = Lz[(size)]
-        return np.array([Lz_0,Lz_1,Lz_2,Lz_3,Lz_4])

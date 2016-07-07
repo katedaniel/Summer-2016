@@ -11,7 +11,7 @@ def parseFilename(filename):
         args.append(num)
     return args
   
-filepath = "C:/Trapped_Orbital_Integrator/qp_file/"
+filepath = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/qp_file/"
 
 #Copy and paste the filename of the desired qp file here
 
