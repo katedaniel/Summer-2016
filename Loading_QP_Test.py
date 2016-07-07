@@ -1,28 +1,50 @@
 import numpy as np
+import os
 import Orbit_Code 
 reload(Orbit_Code)
+import tarfile
 
+#from string of filename, return array of initial conditions
 def parseFilename(filename):
-   
     parts = filename.split("=")
-    args = []
+    args = np.empty(len(parts)-1)
     for l in range(1, len(parts)):
         num = float(parts[l].split(")")[0])
-        args.append(num)
+        args[l-1] = num
     return args
-  
-filepath = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/qp_file/"
+      
+#from list of filenames, return matrix of initial conditions    
+def parseList(files):
+    table = np.empty([len(files),9])
+    for l in range(0,len(files)):
+        table[l] = parseFilename(files[l])
+    return table
+ 
+def genTable(filepath):
+    table = []
+    for dirpath, dirnames, files in os.walk(filepath):
+        for f in files:
+            fullpath = os.path.join(dirpath, f) #get full path of subject file
+            if f != ".DS_Store" and not f.endswith("tar.gz"):
+                a = parseFilename(f) #Turn filename into numpy array of initial conditions
+                orbit = Orbit_Code.Orbit_Calculator(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8])
+                fullpath = os.path.join(dirpath, f) #get full path of subject file
+                data = np.loadtxt(fullpath) #need to change around order of data columns for real thing
+                data = data.astype(float)   #change to float
+                t = data[:,0]   #next two lines switch order of t,x,y,vx,vy to x,y,vx,vy,t
+                data = np.c_[data[:,1:5] ,t] 
+                orbit.setqp(data)   
+                lamsp = orbit.Lam_special()
+                Lz = orbit.findLz()
+                table.append([dirpath+f,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],lamsp,Lz[0],Lz[1],Lz[2],Lz[3],Lz[4]]) 
+    return np.array(table)
 
-#Copy and paste the filename of the desired qp file here
-
-filename = "qp_(m=4)_(th=25.0)_(t=5.0)_(CR=8.0)_(eps=0.4)_(x0=7.8)_(y0=0.0)_(vx0=3.0)_(vy0=230.0).npy"
-
-filename = filepath + filename 
-a = parseFilename(filename)
-orbit = Orbit_Code.Orbit_Calculator(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8])
-
-f = np.loadtxt(filename)
-
-#orbit.setqp(f)
-#orbit.plot(1)
-#orbit.Poincare()
+def unTar(filepath):
+    for dirpath, dirnames, files in os.walk(filepath):
+        for f in files:
+            fullpath = os.path.join(dirpath, f) #get full path of subject file
+            if f.endswith("tar.gz"):
+                tar = tarfile.open(fullpath, "r:gz")
+                tar.extractall(path = filepath)
+                tar.close()
+    return
