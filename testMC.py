@@ -26,13 +26,16 @@ def sort (radius,velocity):
     return rmsOut[2:,:]
 
 #Specify filepath to the initial conditions data
-filepath = "/Users/LBarbano/Desktop/QP_Dump2/"
-MCdata = np.load(filepath + "MC_Orbits_MasterTest1000.npy")
+filepath = "/Users/LBarbano/Github/Summer-2016/table_theta=25.txt"
+tableInfo = np.loadtxt(filepath,delimiter=" ",dtype= str)
+filepaths = tableInfo[:,0]
+data = tableInfo[:,1:16].astype(float)
 
-x = MCdata[:,0]
-y = MCdata[:,1]
-vx = MCdata[:,2]
-vy = MCdata[:,3]
+
+x = data[:,5]
+y = data[:,6]
+vx = data[:,7]
+vy = data[:,8]
 
 '''
 Calculate radii to plot histogram of initial positions
@@ -76,7 +79,7 @@ ax2.set_xlim([4, dim])
 #Plot the distribution!
 fig3 = plt.figure()      #setting up the basic figure with axes and labels
 ax3 = fig3.add_subplot(1,1,1)
-ax3.scatter(x,y, alpha = 1)
+ax3.scatter(x,y, alpha = 0.5)
 ax3.set_xlabel(r'$x$ (kpc)')
 ax3.set_ylabel(r'$y$ (kpc)')
 ax3.axis([-dim,dim,-dim,dim])
