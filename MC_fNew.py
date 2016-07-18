@@ -6,7 +6,6 @@ import numpy as np
 
 NRun = 1 # Number of runs
 NOrbit = 1 # Number of orbits per simulation
-MasterOutName = "./QP_Dump/MC_Orbits_Master.npy"
 
 MasterOutName = "./temp_initials.txt"
 
@@ -35,7 +34,6 @@ RMax = 15. *u.kpc                # Maximum radius, used to produce envelope func
 ################################################################################
 # Helpful little timer
 ################################################################################
-
 def timer(start,end):
     hours, rem = divmod(end-start, 3600)
     minutes, seconds = divmod(rem, 60)
@@ -177,6 +175,7 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
 
 nRun = 1
 #starttime = time.time()
+'''
 while nRun < NRun+1:
     AOut = []
     nOrbit = 1
@@ -201,4 +200,3 @@ qp0 = getMCqp0()
 AOut.append([qp0[0],qp0[1],qp0[2],qp0[3]])
 initials = AOut[0]
 np.savetxt(MasterOutName,initials, delimiter="", fmt="%s", newline=" ")
-'''
