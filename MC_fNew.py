@@ -3,11 +3,14 @@
 import astropy.units as u
 import astropy.constants as const
 import numpy as np
+import os
+import sys
 
 NRun = 1 # Number of runs
 NOrbit = 1 # Number of orbits per simulation
 
-MasterOutName = "./temp_initials.txt"
+location = os.path.dirname(os.path.abspath(sys.argv[0]))
+MasterOutName = location + "/temp_initials.txt"
 
 
 ################################################################################
