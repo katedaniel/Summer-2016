@@ -22,6 +22,7 @@ tableInfo_30 = np.loadtxt(dataFilePath_30,delimiter=" ",dtype= str)
 filepaths_30 = tableInfo_30[:,0]
 data_30 = tableInfo_30[:,1:16].astype(float)
 
+###This function returns rms of angmom for each theta at different time intervals
 def Lz_rms():
     #calculate rms of Lz for THETA OF 15
     rms15_1 = np.sqrt((data_15[:,[10,11]]**2).mean(axis=1)) #rms 0 to 0.5
@@ -50,7 +51,8 @@ def Lz_rms():
     rms_30 = np.array([rms30_1,rms30_2,rms30_3,rms30_4])
     rms_all = [rms_15,rms_20,rms_25,rms_30]
     return rms_all
-    
+
+###This function returns the fraction of initially trapped orbits that end trapped for each theta
 def trap_frac():
     #pull lambda values for THETA OF 15, find number of orbits that start trapped and end trapped
     lam_spec15 = data_15[:,9]
@@ -75,6 +77,8 @@ def trap_frac():
     trap_frac30 = end_trapped30/start_trapped30
     return np.array([trap_frac15,trap_frac20,trap_frac25,trap_frac30])
 
+###This is a very long and quickly made function that amkes 16 subplots
+#it gives information on the evolution of angmom based on different thetas
 def Lz_plot():
     #pulling angmom data
     Lz_15 = data_15[:,[10,11,12,13,14]]

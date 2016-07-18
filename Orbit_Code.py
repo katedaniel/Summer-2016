@@ -72,7 +72,6 @@ import matplotlib.pyplot as plt
 from timeit import default_timer
 from numpy import arange
 from numpy import meshgrid
-from mpl_toolkits.mplot3d import Axes3D
 
 ################################################################################
 # Defining some constants
@@ -244,7 +243,7 @@ class Orbit_Calculator(object):
             ax.plot(radius*np.cos(t+2*np.pi*i/m),radius*np.sin(t+2*np.pi*i/m), color="purple",ls='dotted')   
         return
           
-# Convert coordinates from NR-frame to R-frame
+# Convert coordinates from non-rotating frame to rotating frame
     def __toRframe(self,qpl):  
         
         # Pull out cartesian non-rotating info
@@ -262,9 +261,9 @@ class Orbit_Calculator(object):
         # Calculate polar rotating coordinates for velocity
         v_tot = np.sqrt(vx**2 + vy**2)
         theta = np.arctan2(vy,vx)*u.rad #angle between velocity vector and x-axis
-        alph = phi - theta # angle between position and velocity vectors
+        alph = theta - phi # angle between position and velocity vectors
         vr = v_tot*np.cos(alph)
-        vphi = -v_tot*np.sin(alph)
+        vphi = v_tot*np.sin(alph)
         vphiR = vphi - ((OmegaCR*R*u.kpc)/(u.km/u.s))
         vxR = vr *np.cos(phiR) + vphiR*np.sin(phiR)
         vyR = vr *np.sin(phiR) + vphiR*np.cos(phiR)
@@ -283,16 +282,15 @@ class Orbit_Calculator(object):
         start = default_timer()
     
         qp0 = np.array([x0,y0,vx0,vy0,T[0]])
-        global qp
-        qp = np.zeros(shape=(len(T),5))
-        qp[0] = qp0
+        self.qp = np.zeros(shape=(len(T),5))
+        self.qp[0] = qp0
         print "Steps: %s" %str(NSteps)
         for i in range(len(T)):
             qpstep = qp0 = self.__leapstep(qp0,T[i])
-            qp[i] = qpstep
+            self.qp[i] = qpstep
             
         global qpR
-        qpR =  self.__toRframe(qp) 
+        qpR =  self.__toRframe(self.qp) 
           
         duration = default_timer() - start 
         print "time: %s s" % str(duration)
@@ -300,11 +298,11 @@ class Orbit_Calculator(object):
 
 # Returns qp                 
     def getqp(self):
-        return qp
+        return self.qp
         
 # Returns qpR        
     def getqpR(self):
-        return qpR
+        return self.qpR
 
 # Returns NSteps                 
     def getNSteps(self):
@@ -312,10 +310,8 @@ class Orbit_Calculator(object):
         
 # Sets qp                 
     def setqp(self,qps):
-        global qp
-        global qpR
-        qp = qps
-        qpR = self.__toRframe(qp)
+        self.qp = qps
+        self.qpR = self.__toRframe(self.qp)
         return
         
 # Saves data from non-rotating frame in dump file  
@@ -323,13 +319,12 @@ class Orbit_Calculator(object):
     def saveData(self,filepath,):
         filename = "qp_(m=%s)_(th=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
         str(theta/u.degree),str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
-        np.save(filepath + filename,qp) 
+        np.save(filepath + filename,self.qp) 
         return
         
 # Plots the orbit  
 # For plot of orbit in non-rotating frame, enter 0 as the plot option
-# For the plot in the rotating frame, enter anything else        
-    def plot(self,plotOption):
+# Fodef plot(self,plotOption):
         
         plt.close('all')         #close old plots still up
         
@@ -337,16 +332,16 @@ class Orbit_Calculator(object):
         ax = fig.add_subplot(1,1,1)
         ax.set_xlabel(r'$x$ (kpc)')
         ax.set_ylabel(r'$y$ (kpc)')
-        plt.axis([-13,13,-13,13])
+        plt.axis([-20,20,-20,20])
         ax.set_aspect('equal', 'datalim')
         
-        #Lindlbad Resonance stuff
+        #calculate Lindlbad Resonance radii
         R_1o = (m+np.sqrt(2))*vc/(m*OmegaCR)
         R_1i = (m-np.sqrt(2))*vc/(m*OmegaCR)
-        #for the ultraharmonic resonances
+        #calculate ultraharmonic resonance radii
         R_2o = ((2*m)+np.sqrt(2))*vc/((2*m)*OmegaCR)
         R_2i = ((2*m)-np.sqrt(2))*vc/((2*m)*OmegaCR)
-
+        #plot the lindblad radii
         lind1 = plt.Circle((0,0), (R_1o/u.kpc), color='g', fill=False,ls = 'dashed')
         lind2 = plt.Circle((0,0), (R_1i/u.kpc), color='g', fill=False,ls = 'dashed')
         lind1uh = plt.Circle((0,0), (R_2o/u.kpc), color='g', fill=False,ls = 'dotted')
@@ -384,19 +379,20 @@ class Orbit_Calculator(object):
             #plotting contour
             plt.contourf(X,Y,func,[phi_min,phi_max],colors='gray',alpha=0.3)
             
-        if plotOption==0:
-            qps = qp
-        elif plotOption==1:
-            qps = qpR
+        if plotOption==0:  #this plots in the inertial frame (rarely used)
+            self.qps = self.qp
+        elif plotOption==1:  #this plots in the rotatig frame (usually used)
+            self.qps = self.qpR
             [Rgx,Rgy] = self.findRg()
             plt.plot(Rgx,Rgy,color="black", markevery=500, marker='.', ms=8)
-        else:
+        else:   #This is primarily used for aimation stuff (plots just circles and arms)
             return fig, ax  
-        plt.plot(qps[:,0],qps[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
+        plt.plot(self.qps[:,0],self.qps[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
         
         return fig, ax
         
-        ###Creates a plot of orbittal properties over time
+    ###Creates a plot of orbital properties over time for an individual qp
+    #shows lambda, normalized random energy, and normalized radius (for star and guiding center)
     def plot_prop(self):
         
         plt.close('all')         #close old plots still up
@@ -422,12 +418,13 @@ class Orbit_Calculator(object):
         ax1.axhline(y=-1,c='0.5')
         ax2.axhline(y=1,c='0.5')
         
-        #Lindlbad Resonance stuff
+        #calculate Lindlbad Resonance radius
         R_1o = ((m+np.sqrt(2))*vc/(m*OmegaCR)).to(u.kpc) - CR
         R_1i = ((m-np.sqrt(2))*vc/(m*OmegaCR)).to(u.kpc) - CR
-        #for the ultraharmonic resonances
+        #calculate ultraharmonic resonance radius
         R_2o = (((2*m)+np.sqrt(2))*vc/((2*m)*OmegaCR)).to(u.kpc) - CR
         R_2i = (((2*m)-np.sqrt(2))*vc/((2*m)*OmegaCR)).to(u.kpc) - CR
+        #plot these radii
         ax3.axhline(y=0,c='0.9')
         ax3.axhline(y=R_1o/u.kpc, ls='dashed',c='0.5')
         ax3.axhline(y=R_1i/u.kpc, ls='dashed',c='0.5') 
@@ -438,11 +435,11 @@ class Orbit_Calculator(object):
         Lam = data[0]
         E_ran = data[5]
         
-        x = qp[:,0]*u.kpc         #pulling data from qp
-        y = qp[:,1]*u.kpc
-        vx = qp[:,2]*u.km/u.s
-        vy = qp[:,3]*u.km/u.s
-        t = qp[:,4]*u.yr
+        x = self.qp[:,0]*u.kpc    #pulling data from qp
+        y = self.qp[:,1]*u.kpc
+        vx = self.qp[:,2]*u.km/u.s
+        vy = self.qp[:,3]*u.km/u.s
+        t = self.qp[:,4]*u.yr
         R = np.sqrt(x**2 + y**2)
         phi = np.arctan2(y,x)
         vphi = -np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))
@@ -460,15 +457,14 @@ class Orbit_Calculator(object):
         plt.show()    
 
 
-# Calculates position of guiding radius in rotating frame        
+# Calculates position of guiding center radius in rotating frame        
     def findRg(self):
-        
         #pulling info out of qp
-        x = qp[:,0]*u.kpc
-        y = qp[:,1]*u.kpc
-        vx = qp[:,2]*u.km/u.s
-        vy = qp[:,3]*u.km/u.s
-        t = qp[:,4] *u.yr
+        x = self.qp[:,0]*u.kpc
+        y = self.qp[:,1]*u.kpc
+        vx = self.qp[:,2]*u.km/u.s
+        vy = self.qp[:,3]*u.km/u.s
+        t = self.qp[:,4]*u.yr
         R_g = (np.sqrt(x**2 + y**2)*-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))/vc)
         phi = np.arctan2(y,x)
         phiR= phi - (t*OmegaCR).decompose() *u.rad
@@ -476,28 +472,31 @@ class Orbit_Calculator(object):
         yR = R_g *np.sin(phiR)
         return np.array([xR,yR])
         
+#this function makes an x/vx poincare map using a spline for the discretized qp
+#it has not been used for anything and might need some fixing         
     def Poincare(self):
         plt.close('all')
-        yspline = interpolate.splrep(qp[:,4], qpR[:,1], s=0)
+        yspline = interpolate.splrep(self.qp[:,4], self.qpR[:,1], s=0)
         roots = interpolate.sproot(yspline)
         if len(roots)==0:
             return 
-        xspline = interpolate.splrep(qp[:,4], qpR[:,0], s=0)
-        vxspline = interpolate.splrep(qp[:,4], qpR[:,2], s=0)
+        xspline = interpolate.splrep(self.qp[:,4], self.qpR[:,0], s=0)
+        vxspline = interpolate.splrep(self.qp[:,4], self.qpR[:,2], s=0)
         x = interpolate.splev(roots, xspline)
         vx = interpolate.splev(roots, vxspline)
         plt.scatter(x,vx)
         plt.show()
-        return 
+        return
         
+###This function calculates a few important physical values for a given qp
+#it calculates lambda, E_j, effective potential, angmom, total energy, and random energy at every discretized step
     def findLam(self):
         #pulling qp data
-
-        x = qp[:,0]*u.kpc
-        y = qp[:,1]*u.kpc
-        vx = qp[:,2]*u.km/u.s
-        vy = qp[:,3]*u.km/u.s
-        t = qp[:,4]*u.yr
+        x = self.qp[:,0]*u.kpc
+        y = self.qp[:,1]*u.kpc
+        vx = self.qp[:,2]*u.km/u.s
+        vy = self.qp[:,3]*u.km/u.s
+        t = self.qp[:,4]*u.yr
         #finding some preliminary variables
         R = np.sqrt(x**2 + y**2)
         phi = np.arctan2(y,x)
@@ -526,9 +525,10 @@ class Orbit_Calculator(object):
         Lam_nc2 = Lam_c - ((R_g/CR)*(E_ran/A_CR))
         #finding effective potential
         phi_eff = potential - 0.5*(OmegaCR*R)**2
-        #print and return
+        #return array of all the important physical values
         return np.array([Lam_nc2, E_j, phi_eff, L_z, E_tot, E_ran])
 
+###This function calculates a special lambda value representing its trapped orbit evolution
     def Lam_special(self):
         #use find_lam function to pull physical data
         phys_dat = self.findLam()
@@ -550,26 +550,16 @@ class Orbit_Calculator(object):
             else:
                 lam_spec  = 5 #FREE AT BEGINNING BUT NOT END
         return lam_spec    
-        
+
+###This function calculates angmom for a qp at 5 spaced out times       
     def findLz(self):
-        #use find_lam function to pull physical data
+        #use find_lam function to pull angmom data
         phys_dat = self.findLam()
         Lz = phys_dat[3]
         size = Lz.size
-        Lz_0 = Lz[0]
-        Lz_1 = Lz[(size/4.)]
-        Lz_2 = Lz[(size/2.)]
-        Lz_3 = Lz[(3.*size/4.)]
-        Lz_4 = Lz[(size-1)]
+        Lz_0 = Lz[0]        #initial angmom
+        Lz_1 = Lz[(size/4.)]   #angmom after a quarter of the time
+        Lz_2 = Lz[(size/2.)]   #angmom after half the time
+        Lz_3 = Lz[(3.*size/4.)]  #angmom after three quarters time
+        Lz_4 = Lz[(size-1)]     #final angmom
         return np.array([Lz_0,Lz_1,Lz_2,Lz_3,Lz_4])
-    
-    def tester(self):
-        x = qp[:,0]*u.kpc
-        y = qp[:,1]*u.kpc
-        vx = qp[:,2]*u.km/u.s
-        vy = qp[:,3]*u.km/u.s
-        t = qp[:,4]*u.yr
-        #finding some preliminary variables
-        R = np.sqrt(x**2 + y**2)
-        phi = np.arctan2(y,x)
-        return np.array([x,y,vx,vy,t,R,phi])
