@@ -4,8 +4,8 @@ import astropy.units as u
 import astropy.constants as const
 import numpy as np
 
-NRun = 2 # Number of runs
-NOrbit = 5 # Number of orbits per simulation
+NRun = 1 # Number of runs
+NOrbit = 1 # Number of orbits per simulation
 MasterOutName = "./QP_Dump/MC_Orbits_Master.npy"
 
 MasterOutName = "./temp_initials.txt"
