@@ -33,10 +33,12 @@ def genTable(filepath):
                 data = data.astype(float)   #change to float
                 t = data[:,0]   #next two lines switch order of t,x,y,vx,vy to x,y,vx,vy,t
                 data = np.c_[data[:,1:5] ,t] 
+                data[:,2] = data[:,2]*9.777922216731282e+8
+                data[:,3] = data[:,3]*9.777922216731282e+8
                 orbit.setqp(data)   
                 lamsp = orbit.Lam_special()
                 Lz = orbit.findLz()
-                table.append([dirpath+f,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],lamsp,Lz[0],Lz[1],Lz[2],Lz[3],Lz[4]]) 
+                table.append([dirpath+'/'+f,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],lamsp,Lz[0],Lz[1],Lz[2],Lz[3],Lz[4]]) 
     return np.array(table)
 
 def unTar(filepath):
