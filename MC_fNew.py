@@ -4,11 +4,9 @@ import astropy.units as u
 import astropy.constants as const
 import numpy as np
 
-'''
 NRun = 2 # Number of runs
 NOrbit = 5 # Number of orbits per simulation
 MasterOutName = "./QP_Dump/MC_Orbits_Master.npy"
-'''
 
 MasterOutName = "./temp_initials.txt"
 
@@ -138,27 +136,38 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
         # If utest < AcceptProb then accept these values for E and Lz
         if utest < AcceptProb:
             RL = findRL(iLz)/u.kpc
-            if (RL > 4) and (RL < 12):
+            if (RL > 4) and (RL < 15):
                 Eran = findEran(iE,iLz) # Find random energy(km/s)^2
                 if (Eran/(u.km/u.s)**2 > 0):
                     vran = np.sqrt(2.*Eran) # Find amplitude of random velocity (km/s)
                     if (vran < 2.*findVelocityDispersion(3.*Rd)):
-                        rangle = 2.*pi *np.random.uniform() # Produce direction for position vector
-                        vangle = 2.*pi *np.random.uniform() # Produce direction for velocity vector
-                        alph = vangle - rangle # angle between position and velocity vectors
-                        vranx = vran *np.cos(-vangle) # x-component of random velocity (km/s)
-                        vrany = vran *np.sin(-vangle) # y-component of random velocity (km/s)
-                        vcx = vc *np.cos(rangle+pi/2.) # x-component of circular velocity (km/s)
-                        vcy = vc *np.sin(rangle+pi/2.) # y-component of circualar velocity (km/s)
+                        ranglec = 2.*pi *np.random.random() # Produce direction for position vector
+                        xc = RL *np.cos(ranglec)
+                        yc = RL *np.sin(ranglec)
+                        # Define coords related to elliptical epicycle
+                        ae = 1./np.sqrt(2.)
+                        be = 0.5
+                        rangleran = 2.*pi *np.random.random() # Direction for position in epicycle
+                        xe = ae *np.cos(rangleran)
+                        ye = ae *np.sin(rangleran)
+                        Rran = np.sqrt(xe**2 + ye**2)
+                        vanglerane = np.arctan2(-be**2 *xe, ae**2 *ye) # slope tangent to ellips in xe-ye
+                        vangleran = vanglerane -(ranglec -pi/2.) # slope tangent to ellipse in x-y
+                        xran = Rran *np.cos(rangleran -ranglec +pi/2.)
+                        yran = Rran *np.sin(rangleran -ranglec +pi/2.)
+                        x0 = xc + xran
+                        y0 = yc + yran
+                        # Figure out the velocity
+                        vcx = vc *np.cos(ranglec +pi/2.)
+                        vcy = vc *np.sin(ranglec +pi/2.)            
+                        vranx = vran *np.cos(vangleran) # x-component of random velocity (km/s)
+                        vrany = vran *np.sin(vangleran) # y-component of random velocity (km/s)
                         vx0 = vcx + vranx # initial x-component of velocity vector in N-frame (km/s)
-                        vy0 = vcy + vrany # initial y-component of velocity vector in N-frame (km/s)
-                        v_tot = np.sqrt(vx0**2 + vy0**2) # amplitude of velocity vector in N-frame (km/s)
-                        vphi = v_tot*np.sin(alph) # azimuthal velocity
-                        vR = v_tot*np.cos(alph)
-                        R = iLz/vphi
-                        if  (R/u.kpc > 2) and (R/u.kpc < 15):
-                            x0 = R *np.cos(rangle)/(u.kpc)
-                            y0 = R *np.sin(rangle)/(u.kpc)
+                        vy0 = vcy + vrany # initial y-component of velocity vector in N-frame (km/s)            
+                        R = np.sqrt(x0**2 +y0**2)
+                        if  (R > 2) and (R < 15):
+                            x0 = x0
+                            y0 = y0
                             # Get rid of explicit units
                             vx0 = vx0/(u.km/u.s)
                             vy0 = vy0/(u.km/u.s)
@@ -166,7 +175,6 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
                             nOK = 1
     return qp0    
 
-'''
 nRun = 1
 #starttime = time.time()
 while nRun < NRun+1:
@@ -179,17 +187,18 @@ while nRun < NRun+1:
         vangle = np.arctan2(qp0[3],qp0[2])
         alph = vangle - rangle
         vtot = np.sqrt(qp0[2]**2 + qp0[3]**2)
-        vr = vtot*np.cos(alph)
-        vphi = vtot*np.sin(alph)
-        print 'v_R = ', vr, '| v_phi = ', vphi, '| alpha = ', alph
+        vr = np.round(vtot*np.cos(alph),1)
+        vphi = np.round(vtot*np.sin(alph) - 220.,1)
+        R = np.round(np.sqrt(qp0[0]**2 + qp0[1]**2),1)
+        vran = np.round(np.sqrt(vr**2 +vphi**2),1)
+        print 'R = ',R, '| v_R = ', vr, '| v_phi = ', vphi, '| v_ran = ', vran
         #print "Orbit # ", nOrbit, "| Run # ", nRun, "| Time Elapsed: ", timer(starttime,time.time()), "| ", round(100.*(float(nRun-1)*float(NOrbit) + (nOrbit-1))/float(NRun*NOrbit),1), "% Finished |"
         nOrbit = nOrbit+1
     nRun = nRun +1
 '''
-
 AOut = []
 qp0 = getMCqp0()
 AOut.append([qp0[0],qp0[1],qp0[2],qp0[3]])
 initials = AOut[0]
 np.savetxt(MasterOutName,initials, delimiter="", fmt="%s", newline=" ")
-
+'''
