@@ -287,16 +287,15 @@ class Orbit_Calculator(object):
         start = default_timer()
     
         qp0 = np.array([x0,y0,vx0,vy0,T[0]])
-        global qp
-        qp = np.zeros(shape=(len(T),5))
-        qp[0] = qp0
+        self.qp = np.zeros(shape=(len(T),5))
+        self.qp[0] = qp0
         print "Steps: %s" %str(NSteps)
         for i in range(len(T)):
             qpstep = qp0 = self.__leapstep(qp0,T[i])
-            qp[i] = qpstep
+            self.qp[i] = qpstep
             
         global qpR
-        qpR =  self.__toRframe(qp) 
+        qpR =  self.__toRframe(self.qp) 
           
         duration = default_timer() - start 
         print "time: %s s" % str(duration)
@@ -304,11 +303,11 @@ class Orbit_Calculator(object):
 
 # Returns qp                 
     def getqp(self):
-        return qp
+        return self.qp
         
 # Returns qpR        
     def getqpR(self):
-        return qpR
+        return self.qpR
 
 # Returns NSteps                 
     def getNSteps(self):
@@ -316,10 +315,8 @@ class Orbit_Calculator(object):
         
 # Sets qp                 
     def setqp(self,qps):
-        global qp
-        global qpR
-        qp = qps
-        qpR = self.__toRframe(qp)
+        self.qp = qps
+        self.qpR = self.__toRframe(self.qp)
         return
         
 # Saves data from non-rotating frame in dump file  
@@ -327,7 +324,7 @@ class Orbit_Calculator(object):
     def saveData(self,filepath,):
         filename = "qp_(m=%s)_(th=%s)_(t=%s)_(CR=%s)_(eps=%s)_(x0=%s)_(y0=%s)_(vx0=%s)_(vy0=%s)" %(str(m),
         str(theta/u.degree),str(IntTime/u.Gyr),str(CR/u.kpc),str(epsilon),str(x0),str(y0),str(vx0),str(vy0))
-        np.save(filepath + filename,qp) 
+        np.save(filepath + filename,self.qp) 
         return
         
 # Plots the orbit  
@@ -341,7 +338,7 @@ class Orbit_Calculator(object):
         ax = fig.add_subplot(1,1,1)
         ax.set_xlabel(r'$x$ (kpc)')
         ax.set_ylabel(r'$y$ (kpc)')
-        plt.axis([-13,13,-13,13])
+        plt.axis([-20,20,-20,20])
         ax.set_aspect('equal', 'datalim')
         
         #Lindlbad Resonance stuff
@@ -389,14 +386,14 @@ class Orbit_Calculator(object):
             plt.contourf(X,Y,func,[phi_min,phi_max],colors='gray',alpha=0.3)
             
         if plotOption==0:
-            qps = qp
+            self.qps = self.qp
         elif plotOption==1:
-            qps = qpR
+            self.qps = self.qpR
             [Rgx,Rgy] = self.findRg()
             plt.plot(Rgx,Rgy,color="black", markevery=500, marker='.', ms=8)
         else:
             return fig, ax  
-        plt.plot(qps[:,0],qps[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
+        plt.plot(self.qps[:,0],self.qps[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
         
         return fig, ax
     
@@ -404,11 +401,11 @@ class Orbit_Calculator(object):
     def findEj(self):
         
         #pulling info
-        x = qp[:,0]*u.kpc
-        y = qp[:,1]*u.kpc
-        vx = qp[:,2]*u.km/u.s
-        vy = qp[:,3]*u.km/u.s
-        t = qp[:,4]*u.yr
+        x = self.qp[:,0]*u.kpc
+        y = self.qp[:,1]*u.kpc
+        vx = self.qp[:,2]*u.km/u.s
+        vy = self.qp[:,3]*u.km/u.s
+        t = self.qp[:,4]*u.yr
         R = np.sqrt((x**2)+(y**2))
         phi = np.arctan2(y,x)
         #finding disk potential
@@ -427,10 +424,10 @@ class Orbit_Calculator(object):
     def Capture(self):
         
         #pulling info out of qp
-        x = qp[:,0]*u.kpc
-        y = qp[:,1]*u.kpc
-        vx = qp[:,2]*u.km/u.s
-        vy = qp[:,3]*u.km/u.s
+        x = self.qp[:,0]*u.kpc
+        y = self.qp[:,1]*u.kpc
+        vx = self.qp[:,2]*u.km/u.s
+        vy = self.qp[:,3]*u.km/u.s
         R = np.sqrt(x**2 + y**2)
         phi = np.arctan2(y,x)
         #pulling some constants
@@ -451,11 +448,11 @@ class Orbit_Calculator(object):
     def Phi_eff(self):
         
         #pulling info out of qp
-        x = qp[:,0]*u.kpc
-        y = qp[:,1]*u.kpc
-        vx = qp[:,2]*u.km/u.s
-        vy = qp[:,3]*u.km/u.s
-        t = qp[:,4]*u.yr
+        x = self.qp[:,0]*u.kpc
+        y = self.qp[:,1]*u.kpc
+        vx = self.qp[:,2]*u.km/u.s
+        vy = self.qp[:,3]*u.km/u.s
+        t = self.qp[:,4]*u.yr
         R = np.sqrt(x**2 + y**2)
         phi = np.arctan2(y,x)
         A = self.__findA(R).to((u.km/u.s)**2)
@@ -488,11 +485,11 @@ class Orbit_Calculator(object):
     def findRg(self):
         
         #pulling info out of qp
-        x = qp[:,0]*u.kpc
-        y = qp[:,1]*u.kpc
-        vx = qp[:,2]*u.km/u.s
-        vy = qp[:,3]*u.km/u.s
-        t = qp[:,4] *u.yr
+        x = self.qp[:,0]*u.kpc
+        y = self.qp[:,1]*u.kpc
+        vx = self.qp[:,2]*u.km/u.s
+        vy = self.qp[:,3]*u.km/u.s
+        t = self.qp[:,4] *u.yr
         R_g = (np.sqrt(x**2 + y**2)*-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))/vc)
         phi = np.arctan2(y,x)
         phiR= phi - (t*OmegaCR).decompose() *u.rad
@@ -502,12 +499,12 @@ class Orbit_Calculator(object):
         
     def Poincare(self):
         plt.close('all')
-        yspline = interpolate.splrep(qp[:,4], qpR[:,1], s=0)
+        yspline = interpolate.splrep(self.qp[:,4], self.qpR[:,1], s=0)
         roots = interpolate.sproot(yspline)
         if len(roots)==0:
             return 
-        xspline = interpolate.splrep(qp[:,4], qpR[:,0], s=0)
-        vxspline = interpolate.splrep(qp[:,4], qpR[:,2], s=0)
+        xspline = interpolate.splrep(self.qp[:,4], self.qpR[:,0], s=0)
+        vxspline = interpolate.splrep(self.qp[:,4], self.qpR[:,2], s=0)
         x = interpolate.splev(roots, xspline)
         vx = interpolate.splev(roots, vxspline)
         plt.scatter(x,vx)
@@ -517,11 +514,11 @@ class Orbit_Calculator(object):
     def findLam(self):
         #pulling qp data
 
-        x = qp[:,0]*u.kpc
-        y = qp[:,1]*u.kpc
-        vx = qp[:,2]*u.km/u.s
-        vy = qp[:,3]*u.km/u.s
-        t = qp[:,4]*u.yr
+        x = self.qp[:,0]*u.kpc
+        y = self.qp[:,1]*u.kpc
+        vx = self.qp[:,2]*u.km/u.s
+        vy = self.qp[:,3]*u.km/u.s
+        t = self.qp[:,4]*u.yr
         #finding some preliminary variables
         R = np.sqrt(x**2 + y**2)
         phi = np.arctan2(y,x)
@@ -567,7 +564,7 @@ class Orbit_Calculator(object):
                 lam_spec  = 2 #TRAPPED AT BEGINNING BUT NOT END
         if np.absolute(Lam[0]) >= 1.: #starts free
             if np.absolute(Lam[-1]) >= 1.: #ends free
-                if (np.absolute(Lam) >= 1.).sum() > 0: #trapped at any point
+                if (np.absolute(Lam) < 1.).sum() > 0: #trapped at any point
                     lam_spec  = 3 #FREE AT BEGINNING AND END, BUT NOT MIDDLE
                 else:
                     lam_spec  = 4 #ALWAYS FREE
