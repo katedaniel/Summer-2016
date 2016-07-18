@@ -4,9 +4,8 @@ import astropy.units as u
 import astropy.constants as const
 import numpy as np
 
-NRun = 2 # Number of runs
-NOrbit = 5 # Number of orbits per simulation
-MasterOutName = "./QP_Dump/MC_Orbits_Master.npy"
+NRun = 1 # Number of runs
+NOrbit = 1 # Number of orbits per simulation
 
 MasterOutName = "./temp_initials.txt"
 
@@ -176,6 +175,7 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
 
 nRun = 1
 #starttime = time.time()
+'''
 while nRun < NRun+1:
     AOut = []
     nOrbit = 1
@@ -200,4 +200,3 @@ qp0 = getMCqp0()
 AOut.append([qp0[0],qp0[1],qp0[2],qp0[3]])
 initials = AOut[0]
 np.savetxt(MasterOutName,initials, delimiter="", fmt="%s", newline=" ")
-'''

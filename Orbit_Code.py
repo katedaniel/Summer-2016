@@ -324,7 +324,8 @@ class Orbit_Calculator(object):
         
 # Plots the orbit  
 # For plot of orbit in non-rotating frame, enter 0 as the plot option
-# Fodef plot(self,plotOption):
+# For plot of orbit in rotating frame, enter 1 as the plot option (recomended)
+    def plot(self,plotOption):
         
         plt.close('all')         #close old plots still up
         
