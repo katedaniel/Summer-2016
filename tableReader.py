@@ -21,17 +21,60 @@ dataFilePath_30 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/tab
 tableInfo_30 = np.loadtxt(dataFilePath_30,delimiter=" ",dtype= str)
 filepaths_30 = tableInfo_30[:,0]
 data_30 = tableInfo_30[:,1:16].astype(float)
-'''
-rms1 = np.sqrt((data[:,[10,11]]**2).mean(axis=1)) #rms 0 to 0.5
-rms2 = np.sqrt((data[:,[10,12]]**2).mean(axis=1)) #rms 0 to 1
-rms3 = np.sqrt((data[:,[10,13]]**2).mean(axis=1)) #rms 0 to 1.5
-rms4 = np.sqrt((data[:,[10,14]]**2).mean(axis=1)) #rms 0 to 2.0
 
-lam_spec = data[:,9]
-start_trapped = float(((lam_spec == 0) or (lam_spec == 1) or (lam_spec == 2)).sum())
-end_trapped = float(((lam_spec == 0) or (lam_spec == 1)).sum())
-trap_frac = end_trapped/start_trapped
-'''
+def Lz_rms():
+    #calculate rms of Lz for THETA OF 15
+    rms15_1 = np.sqrt((data_15[:,[10,11]]**2).mean(axis=1)) #rms 0 to 0.5
+    rms15_2 = np.sqrt((data_15[:,[10,12]]**2).mean(axis=1)) #rms 0 to 1
+    rms15_3 = np.sqrt((data_15[:,[10,13]]**2).mean(axis=1)) #rms 0 to 1.5
+    rms15_4 = np.sqrt((data_15[:,[10,14]]**2).mean(axis=1)) #rms 0 to 2.0
+    #calculate rms of Lz for THETA OF 20
+    rms20_1 = np.sqrt((data_20[:,[10,11]]**2).mean(axis=1)) #rms 0 to 0.5
+    rms20_2 = np.sqrt((data_20[:,[10,12]]**2).mean(axis=1)) #rms 0 to 1
+    rms20_3 = np.sqrt((data_20[:,[10,13]]**2).mean(axis=1)) #rms 0 to 1.5
+    rms20_4 = np.sqrt((data_20[:,[10,14]]**2).mean(axis=1)) #rms 0 to 2.0
+    #calculate rms of Lz for THETA OF 25
+    rms25_1 = np.sqrt((data_25[:,[10,11]]**2).mean(axis=1)) #rms 0 to 0.5
+    rms25_2 = np.sqrt((data_25[:,[10,12]]**2).mean(axis=1)) #rms 0 to 1
+    rms25_3 = np.sqrt((data_25[:,[10,13]]**2).mean(axis=1)) #rms 0 to 1.5
+    rms25_4 = np.sqrt((data_25[:,[10,14]]**2).mean(axis=1)) #rms 0 to 2.0
+    #calculate rms of Lz for THETA OF 30
+    rms30_1 = np.sqrt((data_30[:,[10,11]]**2).mean(axis=1)) #rms 0 to 0.5
+    rms30_2 = np.sqrt((data_30[:,[10,12]]**2).mean(axis=1)) #rms 0 to 1
+    rms30_3 = np.sqrt((data_30[:,[10,13]]**2).mean(axis=1)) #rms 0 to 1.5
+    rms30_4 = np.sqrt((data_30[:,[10,14]]**2).mean(axis=1)) #rms 0 to 2.0
+    #put the rms values into arrays and return them
+    rms_15 = np.array([rms15_1,rms15_2,rms15_3,rms15_4])
+    rms_20 = np.array([rms20_1,rms20_2,rms20_3,rms20_4])
+    rms_25 = np.array([rms25_1,rms25_2,rms25_3,rms25_4])
+    rms_30 = np.array([rms30_1,rms30_2,rms30_3,rms30_4])
+    rms_all = [rms_15,rms_20,rms_25,rms_30]
+    return rms_all
+    
+def trap_frac():
+    #pull lambda values for THETA OF 15, find number of orbits that start trapped and end trapped
+    lam_spec15 = data_15[:,9]
+    start_trapped15 = float((lam_spec15 == 0).sum()+(lam_spec15 == 1).sum()+(lam_spec15 == 2).sum())
+    end_trapped15 = float((lam_spec15 == 0).sum()+(lam_spec15 == 1).sum())
+    #pull lambda values for THETA OF 20, find number of orbits that start trapped and end trapped
+    lam_spec20 = data_20[:,9]
+    start_trapped20 = float((lam_spec20 == 0).sum()+(lam_spec20 == 1).sum()+(lam_spec20 == 2).sum())
+    end_trapped20 = float((lam_spec20 == 0).sum()+(lam_spec20 == 1).sum())
+    #pull lambda values for THETA OF 25, find number of orbits that start trapped and end trapped
+    lam_spec25 = data_25[:,9]
+    start_trapped25 = float((lam_spec25 == 0).sum()+(lam_spec25 == 1).sum()+(lam_spec25 == 2).sum())
+    end_trapped25 = float((lam_spec25 == 0).sum()+(lam_spec25 == 1).sum())
+    #pull lambda values for THETA OF 30, find number of orbits that start trapped and end trapped
+    lam_spec30 = data_30[:,9]
+    start_trapped30 = float((lam_spec30 == 0).sum()+(lam_spec30 == 1).sum()+(lam_spec30 == 2).sum())
+    end_trapped30 = float((lam_spec30 == 0).sum()+(lam_spec30 == 1).sum())
+    #claculate fraction of initially trapped orbits that end trapped
+    trap_frac15 = end_trapped15/start_trapped15
+    trap_frac20 = end_trapped20/start_trapped20
+    trap_frac25 = end_trapped25/start_trapped25
+    trap_frac30 = end_trapped30/start_trapped30
+    return np.array([trap_frac15,trap_frac20,trap_frac25,trap_frac30])
+
 def Lz_plot():
     #pulling angmom data
     Lz_15 = data_15[:,[10,11,12,13,14]]
@@ -200,12 +243,7 @@ def Lz_plot():
     ax14.set_xticklabels(['',1000,'',2000,'',3000])
     ax15.set_xticklabels(['',1000,'',2000,'',3000])
     ax16.set_xticklabels(['',1000,'',2000,'',3000])
-    '''
-    ax13.set_xticks([3.0,4.,5.0,6.,7.0,8.,9.0,10.])
-    ax14.set_xticks([3.0,4.,5.0,6.,7.0,8.,9.0,10.])
-    ax15.set_xticks([3.0,4.,5.0,6.,7.0,8.,9.0,10.])
-    ax16.set_xticks([3.0,4.,5.0,6.,7.0,8.,9.0,10.])
-    '''
+
     #adding axis labels for the individual subplots
     ax1.set_ylabel(r'$\theta=15$')
     ax5.set_ylabel(r'$\theta=20$')
@@ -269,8 +307,8 @@ def Lz_plot():
     
     
     #adding overall axis labels, title, and colorbar label
-    fig.text(0.5, 0.02, r'Initial L $(\frac{km^2}{s})$', ha='center', size=18)
-    fig.text(0.02, 0.5, r'$\Delta L (\frac{km^2}{s})$', va='center', rotation='vertical', size=18)
+    fig.text(0.5, 0.02, r'Initial L $(kpc\frac{km}{s})$', ha='center', size=18)
+    fig.text(0.02, 0.5, r'$\Delta L (kpc\frac{km}{s})$', va='center', rotation='vertical', size=18)
     fig.text(0.85, 0.87, 'Number\nof Stars')
     plt.suptitle('Change in Angular Momentum', size=22)
     
