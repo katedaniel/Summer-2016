@@ -1,4 +1,4 @@
-import Loading_QP_Test as tableMaker
+import Table_Helper as tableMaker
 reload(tableMaker)
 import numpy as np
 from timeit import default_timer

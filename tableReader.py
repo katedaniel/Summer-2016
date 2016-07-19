@@ -1,29 +1,54 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import Orbit_Code 
+reload(Orbit_Code)
 
-#function that finds root mean square
-def rmse(values):
-    return np.sqrt((values**2).mean())
+###Function used to pull initial data from a filename for an orbit
+def parseFilename(filename):
+   
+    parts = filename.split("=")
+    args = []
+    for l in range(1, len(parts)):
+        num = float(parts[l].split(")")[0])
+        args.append(num)
+    return args
 
-dataFilePath_25 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table_25.txt"
-tableInfo_25 = np.loadtxt(dataFilePath_25,delimiter=" ",dtype= str)
-filepaths_25 = tableInfo_25[:,0]
-data_25 = tableInfo_25[:,1:16].astype(float)
-dataFilePath_15 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table_15.txt"
-tableInfo_15 = np.loadtxt(dataFilePath_15,delimiter=" ",dtype= str)
-filepaths_15 = tableInfo_15[:,0]
-data_15 = tableInfo_15[:,1:16].astype(float)
-dataFilePath_20 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table_20.txt"
-tableInfo_20 = np.loadtxt(dataFilePath_20,delimiter=" ",dtype= str)
-filepaths_20 = tableInfo_20[:,0]
-data_20 = tableInfo_20[:,1:16].astype(float)
-dataFilePath_30 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table_30.txt"
-tableInfo_30 = np.loadtxt(dataFilePath_30,delimiter=" ",dtype= str)
-filepaths_30 = tableInfo_30[:,0]
-data_30 = tableInfo_30[:,1:16].astype(float)
+###Plots a single orbit in the rotating frame, given its filepath from the table 
+def plotOrbit(filename):    
+    #filename = "C:/Trapped_Orbital_Integrator/tar_master_20/qp_file_1/qp_(m=4)_(th=20)_(t=2)_(CR=8)_(eps=0.3)_(x0=-10.79)_(y0=1.29787)_(vx0=27.5492)_(vy0=-176.19).txt"
+    a = parseFilename(filename)
+    orbit = Orbit_Code.Orbit_Calculator(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8])
+    data = np.loadtxt(filename,delimiter=" ",dtype= str).astype(float)
+    t = data[:,0]   #next two lines switch order of t,x,y,vx,vy to x,y,vx,vy,t
+    data = np.c_[data[:,1:5] ,t] 
+    orbit.setqp(data)   
+    orbit.plot(1)
+
+###Imports all the table data
+def dat_import():
+    dataFilePath_25 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table_25.txt"
+    tableInfo_25 = np.loadtxt(dataFilePath_25,delimiter=" ",dtype= str)
+    filepaths_25 = tableInfo_25[:,0]
+    data_25 = tableInfo_25[:,1:16].astype(float)
+
+    dataFilePath_15 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table_15.txt"
+    tableInfo_15 = np.loadtxt(dataFilePath_15,delimiter=" ",dtype= str)
+    filepaths_15 = tableInfo_15[:,0]
+    data_15 = tableInfo_15[:,1:16].astype(float)
+
+    dataFilePath_20 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table_20.txt"
+    tableInfo_20 = np.loadtxt(dataFilePath_20,delimiter=" ",dtype= str)
+    filepaths_20 = tableInfo_20[:,0]
+    data_20 = tableInfo_20[:,1:16].astype(float)
+
+    dataFilePath_30 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table_30.txt"
+    tableInfo_30 = np.loadtxt(dataFilePath_30,delimiter=" ",dtype= str)
+    filepaths_30 = tableInfo_30[:,0]
+    data_30 = tableInfo_30[:,1:16].astype(float)
 
 ###This function returns rms of angmom for each theta at different time intervals
 def Lz_rms():
+    dat_import()    #imports the data
     #calculate rms of Lz for THETA OF 15
     rms15_1 = np.sqrt((data_15[:,[10,11]]**2).mean(axis=1)) #rms 0 to 0.5
     rms15_2 = np.sqrt((data_15[:,[10,12]]**2).mean(axis=1)) #rms 0 to 1
@@ -54,6 +79,7 @@ def Lz_rms():
 
 ###This function returns the fraction of initially trapped orbits that end trapped for each theta
 def trap_frac():
+    dat_import()    #imports the data
     #pull lambda values for THETA OF 15, find number of orbits that start trapped and end trapped
     lam_spec15 = data_15[:,9]
     start_trapped15 = float((lam_spec15 == 0).sum()+(lam_spec15 == 1).sum()+(lam_spec15 == 2).sum())
@@ -80,6 +106,7 @@ def trap_frac():
 ###This is a very long and quickly made function that amkes 16 subplots
 #it gives information on the evolution of angmom based on different thetas
 def Lz_plot():
+    dat_import()    #imports the data
     #pulling angmom data
     Lz_15 = data_15[:,[10,11,12,13,14]]
     Lz_20 = data_20[:,[10,11,12,13,14]]
