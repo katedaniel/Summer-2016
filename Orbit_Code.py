@@ -1,6 +1,5 @@
 '''
 Authors: Luke Barbano and Noah Lifset
-
 Description: 
     This file implements the Orbit_Calculator class, which performs all of the 
 calculations associated with numerically simulating a star's orbit about the 
@@ -17,10 +16,8 @@ given its reliance on global variables in lieu of assigning attributes to the
 instance of the class; however, this class implementation best salvaged the 
 previous version of the code and might be slightly faster since the self instance 
 of the class doesn't have to constanly access the many, frequently used variables. 
-
 Note: If any changes are made to the Orbit_Calculator class, make sure to restart the 
 kernel so the changes will be implemented when using the class.
-
 Class Summary:
     
 --------------------------------------------------------------------------------
@@ -39,7 +36,6 @@ Public (Callable) Methods:
     --makeOrbit(self)
         -calculates the orbit
         -creates global numpy arrays for qp and qpR
-
     --getqp(self)
         -returns numpy array qp
         
@@ -76,7 +72,6 @@ import matplotlib.pyplot as plt
 from timeit import default_timer
 from numpy import arange
 from numpy import meshgrid
-from mpl_toolkits.mplot3d import Axes3D
 
 ################################################################################
 # Defining some constants
@@ -248,7 +243,7 @@ class Orbit_Calculator(object):
             ax.plot(radius*np.cos(t+2*np.pi*i/m),radius*np.sin(t+2*np.pi*i/m), color="purple",ls='dotted')   
         return
           
-# Convert coordinates from NR-frame to R-frame
+# Convert coordinates from non-rotating frame to rotating frame
     def __toRframe(self,qpl):  
         
         # Pull out cartesian non-rotating info
@@ -266,9 +261,9 @@ class Orbit_Calculator(object):
         # Calculate polar rotating coordinates for velocity
         v_tot = np.sqrt(vx**2 + vy**2)
         theta = np.arctan2(vy,vx)*u.rad #angle between velocity vector and x-axis
-        alph = phi - theta # angle between position and velocity vectors
+        alph = theta - phi # angle between position and velocity vectors
         vr = v_tot*np.cos(alph)
-        vphi = -v_tot*np.sin(alph)
+        vphi = v_tot*np.sin(alph)
         vphiR = vphi - ((OmegaCR*R*u.kpc)/(u.km/u.s))
         vxR = vr *np.cos(phiR) + vphiR*np.sin(phiR)
         vyR = vr *np.sin(phiR) + vphiR*np.cos(phiR)
@@ -329,7 +324,6 @@ class Orbit_Calculator(object):
         
 # Plots the orbit  
 # For plot of orbit in non-rotating frame, enter 0 as the plot option
-# For the plot in the rotating frame, enter anything else        
     def plot(self,plotOption):
         
         plt.close('all')         #close old plots still up
@@ -341,13 +335,13 @@ class Orbit_Calculator(object):
         plt.axis([-20,20,-20,20])
         ax.set_aspect('equal', 'datalim')
         
-        #Lindlbad Resonance stuff
+        #calculate Lindlbad Resonance radii
         R_1o = (m+np.sqrt(2))*vc/(m*OmegaCR)
         R_1i = (m-np.sqrt(2))*vc/(m*OmegaCR)
-        #for the ultraharmonic resonances
+        #calculate ultraharmonic resonance radii
         R_2o = ((2*m)+np.sqrt(2))*vc/((2*m)*OmegaCR)
         R_2i = ((2*m)-np.sqrt(2))*vc/((2*m)*OmegaCR)
-
+        #plot the lindblad radii
         lind1 = plt.Circle((0,0), (R_1o/u.kpc), color='g', fill=False,ls = 'dashed')
         lind2 = plt.Circle((0,0), (R_1i/u.kpc), color='g', fill=False,ls = 'dashed')
         lind1uh = plt.Circle((0,0), (R_2o/u.kpc), color='g', fill=False,ls = 'dotted')
@@ -378,118 +372,99 @@ class Orbit_Calculator(object):
             phi_max = (hcr + A_CR)/((u.km/u.s)**2)
             #defining the contour equation
             A = self.__findA(R*u.kpc).to((u.km/u.s)**2)
-            spiral_potential = A_CR*np.cos(-alpha*np.log(R*u.kpc/CR)*u.rad -m*phi*u.rad)
+            spiral_potential = A*np.cos(-alpha*np.log(R*u.kpc/CR)*u.rad -m*phi*u.rad)
             disk_potential = (vc**2)*np.log(R)
             potential = spiral_potential + disk_potential
             func = (0.5*(OmegaCR**2)*(CR**2) - (OmegaCR**2)*CR*(R*u.kpc) + potential)/((u.km/u.s)**2)
             #plotting contour
             plt.contourf(X,Y,func,[phi_min,phi_max],colors='gray',alpha=0.3)
             
-        if plotOption==0:
+        if plotOption==0:  #this plots in the inertial frame (rarely used)
             self.qps = self.qp
-        elif plotOption==1:
+        elif plotOption==1:  #this plots in the rotatig frame (usually used)
             self.qps = self.qpR
             [Rgx,Rgy] = self.findRg()
             plt.plot(Rgx,Rgy,color="black", markevery=500, marker='.', ms=8)
-        else:
+        else:   #This is primarily used for aimation stuff (plots just circles and arms)
             return fig, ax  
         plt.plot(self.qps[:,0],self.qps[:,1], color="SlateBlue", markevery=500, marker='.', ms=8) 
         
         return fig, ax
-    
         
-    def findEj(self):
+    ###Creates a plot of orbital properties over time for an individual qp
+    #shows lambda, normalized random energy, and normalized radius (for star and guiding center)
+    def plot_prop(self):
         
-        #pulling info
-        x = self.qp[:,0]*u.kpc
-        y = self.qp[:,1]*u.kpc
-        vx = self.qp[:,2]*u.km/u.s
-        vy = self.qp[:,3]*u.km/u.s
-        t = self.qp[:,4]*u.yr
-        R = np.sqrt((x**2)+(y**2))
-        phi = np.arctan2(y,x)
-        #finding disk potential
-        disk_potential = (vc**2)*np.log(R/u.kpc)
-        #finding spiral potential
-        A = self.__findA(R).to((u.km/u.s)**2)
-        spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad + (m*OmegaCR*t)*u.rad -m*phi)
-        #calculating potential, then energy, then Ej
-        potential = disk_potential + spiral_potential
-        E_tot = potential + 0.5*(vx**2 + vy**2)
-        L_z = R*-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))
-        E_j = E_tot - OmegaCR*L_z
-        return np.array([E_j, L_z, E_tot]) #implicit units of (km/s)**2
+        plt.close('all')         #close old plots still up
         
+        fig = plt.figure(1)      #setting up the basic figure with axes and labels
+        ax1 = fig.add_subplot(3,1,1)
+        ax2 = fig.add_subplot(3,1,2, sharex = ax1)
+        ax3 = fig.add_subplot(3,1,3)
+        fig.subplots_adjust(hspace=0.)
         
-    def Capture(self):
+        ax1.set_ylabel(r'$\Lambda_{nc,2} (t)$', size=18)
+        ax2.set_ylabel(r'$\frac{E_{ran} (t)}{E_{ran,0}}$', size=22)
+        ax3.set_ylabel(r'$\frac{R_{L} (t) - R_{CR}}{kpc}$', size=20)
+        ax3.set_xlabel(r't ($10^8$ years)')
         
-        #pulling info out of qp
-        x = self.qp[:,0]*u.kpc
-        y = self.qp[:,1]*u.kpc
-        vx = self.qp[:,2]*u.km/u.s
-        vy = self.qp[:,3]*u.km/u.s
-        R = np.sqrt(x**2 + y**2)
-        phi = np.arctan2(y,x)
-        #pulling some constants
-        Ej__ = self.findEj()
-        Ej_ = Ej__[0]
-        Ej = Ej_[0]
-        A_CR = self.__findA(CR).to((u.km/u.s)**2)
-        #finding Rg
-        R_g = R*-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))/vc
-        #finding E_random
-        E_ran = 0.5*((np.sqrt(vx**2 + vy**2)*np.cos(phi - np.arctan2(vy,vx)))**2 + (-np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))-vc)**2)
-        #finding Lambda_c
-        Lam_c = (Ej - hcr/((u.km/u.s)**2))/(A_CR/((u.km/u.s)**2))
-        #finding Lambda_nc,2
-        Lam_nc2 = Lam_c - ((R_g/CR)*(E_ran/A_CR))
-        return np.array(Lam_nc2)
+        ax1.set_ylim([-1.3,1.3])
+        ax2.set_ylim([-0.5,5.9])
+        ax3.set_ylim([-2.9,2.9])
         
-    def Phi_eff(self):
+        ax1.set_xticklabels([])
+        ax2.set_xticklabels([])
+        ax1.axhline(y=1,c='0.5')
+        ax1.axhline(y=-1,c='0.5')
+        ax2.axhline(y=1,c='0.5')
         
-        #pulling info out of qp
-        x = self.qp[:,0]*u.kpc
+        #calculate Lindlbad Resonance radius
+        R_1o = ((m+np.sqrt(2))*vc/(m*OmegaCR)).to(u.kpc) - CR
+        R_1i = ((m-np.sqrt(2))*vc/(m*OmegaCR)).to(u.kpc) - CR
+        #calculate ultraharmonic resonance radius
+        R_2o = (((2*m)+np.sqrt(2))*vc/((2*m)*OmegaCR)).to(u.kpc) - CR
+        R_2i = (((2*m)-np.sqrt(2))*vc/((2*m)*OmegaCR)).to(u.kpc) - CR
+        #plot these radii
+        ax3.axhline(y=0,c='0.9')
+        ax3.axhline(y=R_1o/u.kpc, ls='dashed',c='0.5')
+        ax3.axhline(y=R_1i/u.kpc, ls='dashed',c='0.5') 
+        ax3.axhline(y=R_2o/u.kpc, ls='dotted',c='0.5')
+        ax3.axhline(y=R_2i/u.kpc, ls='dotted',c='0.5')       
+        
+        data = self.findLam()     #pulling the orbital data
+        Lam = data[0]
+        E_ran = data[5]
+        
+        x = self.qp[:,0]*u.kpc    #pulling data from qp
         y = self.qp[:,1]*u.kpc
         vx = self.qp[:,2]*u.km/u.s
         vy = self.qp[:,3]*u.km/u.s
         t = self.qp[:,4]*u.yr
         R = np.sqrt(x**2 + y**2)
         phi = np.arctan2(y,x)
-        A = self.__findA(R).to((u.km/u.s)**2)
-        #finding potential
-        disk_potential = (vc**2)*np.log(R/u.kpc)
-        spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad + m*phi)
-        potential = disk_potential + spiral_potential
-        #put it together
-        phi_eff = potential - 0.5*(OmegaCR*R)**2
-        return phi_eff
+        vphi = -np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))
+        R_g = (R*vphi/vc).to(u.kpc)
         
-    def test(self):
+        E_ran_var = E_ran/(E_ran[0])   #calculating final stuff for the plot
+        R_var = R - CR
+        R_g_var = R_g - CR
         
-        delta = 0.25
-        x_range = arange(-13.0, 13.0, delta)
-        y_range = arange(-13.0, 13.0, delta)
-        X, Y = meshgrid(x_range,y_range)
-        R = np.sqrt((X**2) + (Y**2))*u.kpc
-        phi = np.arctan2(Y,X)
-        A = self.__findA(R).to((u.km/u.s)**2)
-        disk_potential = (vc**2)*np.log(R/u.kpc)
-        spiral_potential = A*np.cos(-alpha*np.log(R/CR)*u.rad - m*phi*u.rad)
-        potential = disk_potential + spiral_potential
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax.plot_wireframe(X,Y,potential - 0.5*(OmegaCR*R)**2)#plots phi_eff
-        return
+        ax1.plot(t, Lam, c='purple')
+        ax2.plot(t, E_ran_var, c='b')
+        ax3.plot(t, R_var, c='r', ls='dashed')
+        ax3.plot(t, R_g_var, c='black')
+        
+        plt.show()    
 
-# Calculates position of guiding radius in rotating frame        
+
+# Calculates position of guiding center radius in rotating frame        
     def findRg(self):
-        
         #pulling info out of qp
         x = self.qp[:,0]*u.kpc
         y = self.qp[:,1]*u.kpc
         vx = self.qp[:,2]*u.km/u.s
         vy = self.qp[:,3]*u.km/u.s
-        t = self.qp[:,4] *u.yr
+        t = self.qp[:,4]*u.yr
         R_g = (np.sqrt(x**2 + y**2)*-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))/vc)
         phi = np.arctan2(y,x)
         phiR= phi - (t*OmegaCR).decompose() *u.rad
@@ -497,6 +472,8 @@ class Orbit_Calculator(object):
         yR = R_g *np.sin(phiR)
         return np.array([xR,yR])
         
+#this function makes an x/vx poincare map using a spline for the discretized qp
+#it has not been used for anything and might need some fixing         
     def Poincare(self):
         plt.close('all')
         yspline = interpolate.splrep(self.qp[:,4], self.qpR[:,1], s=0)
@@ -509,11 +486,12 @@ class Orbit_Calculator(object):
         vx = interpolate.splev(roots, vxspline)
         plt.scatter(x,vx)
         plt.show()
-        return 
+        return
         
+###This function calculates a few important physical values for a given qp
+#it calculates lambda, E_j, effective potential, angmom, total energy, and random energy at every discretized step
     def findLam(self):
         #pulling qp data
-
         x = self.qp[:,0]*u.kpc
         y = self.qp[:,1]*u.kpc
         vx = self.qp[:,2]*u.km/u.s
@@ -522,7 +500,7 @@ class Orbit_Calculator(object):
         #finding some preliminary variables
         R = np.sqrt(x**2 + y**2)
         phi = np.arctan2(y,x)
-        vphi = -np.sqrt(vx**2 + vy**2)*np.sin(phi - np.arctan2(vy,vx))
+        vphi = np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(vy,vx) - phi)
         R_g = (R*vphi/vc).to(u.kpc)
         A = self.__findA(R).to((u.km/u.s)**2)
         A_CR = self.__findA(CR).to((u.km/u.s)**2)
@@ -547,9 +525,10 @@ class Orbit_Calculator(object):
         Lam_nc2 = Lam_c - ((R_g/CR)*(E_ran/A_CR))
         #finding effective potential
         phi_eff = potential - 0.5*(OmegaCR*R)**2
-        #print and return
+        #return array of all the important physical values
         return np.array([Lam_nc2, E_j, phi_eff, L_z, E_tot, E_ran])
 
+###This function calculates a special lambda value representing its trapped orbit evolution
     def Lam_special(self):
         #use find_lam function to pull physical data
         phys_dat = self.findLam()
@@ -571,16 +550,16 @@ class Orbit_Calculator(object):
             else:
                 lam_spec  = 5 #FREE AT BEGINNING BUT NOT END
         return lam_spec    
-        
+
+###This function calculates angmom for a qp at 5 spaced out times       
     def findLz(self):
-        #use find_lam function to pull physical data
+        #use find_lam function to pull angmom data
         phys_dat = self.findLam()
         Lz = phys_dat[3]
         size = Lz.size
-        Lz_0 = Lz[0]
-        Lz_1 = Lz[(size/4.)]
-        Lz_2 = Lz[(size/2.)]
-        Lz_3 = Lz[(3.*size/4.)]
-        Lz_4 = Lz[(size-1)]
+        Lz_0 = Lz[0]        #initial angmom
+        Lz_1 = Lz[(size/4.)]   #angmom after a quarter of the time
+        Lz_2 = Lz[(size/2.)]   #angmom after half the time
+        Lz_3 = Lz[(3.*size/4.)]  #angmom after three quarters time
+        Lz_4 = Lz[(size-1)]     #final angmom
         return np.array([Lz_0,Lz_1,Lz_2,Lz_3,Lz_4])
-        

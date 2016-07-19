@@ -26,11 +26,10 @@ def sort (radius,velocity):
     return rmsOut[2:,:]
 
 #Specify filepath to the initial conditions data
-filepath = "/Users/LBarbano/Github/Summer-2016/table_theta=25.txt"
+filepath = "/Users/LBarbano/Github/Summer-2016/table_theta=20.txt"
 tableInfo = np.loadtxt(filepath,delimiter=" ",dtype= str)
 filepaths = tableInfo[:,0]
 data = tableInfo[:,1:16].astype(float)
-
 
 x = data[:,5]
 y = data[:,6]
