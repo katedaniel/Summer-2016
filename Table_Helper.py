@@ -52,6 +52,7 @@ def genTable(filepath):
     table3 = np.sqrt(table3/qp_len)
     table2 = table2/(table2[0])
     table_final = np.vstack((table2,table3))
+    table_final = np.vstack((t,table_final))
     return np.array(table), table_final.transpose()
 
 def unTar(filepath):
