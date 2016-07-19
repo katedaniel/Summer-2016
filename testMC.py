@@ -102,6 +102,15 @@ bins = 100
 fig6 = plt.figure()      #setting up the basic figure with axes and labels
 ax6 = fig6.add_subplot(1,1,1)
 ax6.hist(alph,bins)
+
+
+fig7 = plt.figure()
+ax7 = fig7.add_subplot(111)
+H, xedges, yedges = np.histogram2d(radius, vr, range=[[0,16.0], [-120.,120.0]], bins=(50, 50))
+myextent  = [xedges[0],xedges[-1],yedges[0],yedges[-1]]
+im = ax7.imshow(H.T,origin='low',extent=myextent,interpolation='nearest',aspect ='auto')
+cbar = plt.colorbar(im)
+ax7.set_xlim(0, 15)
 plt.show()
 
 
