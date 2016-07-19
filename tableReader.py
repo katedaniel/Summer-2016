@@ -46,6 +46,68 @@ def dat_import():
     filepaths_30 = tableInfo_30[:,0]
     data_30 = tableInfo_30[:,1:16].astype(float)
 
+###Imports data for angmom rms and trap_frac plots
+def dat_import2():
+    dataFilePath_25 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table2_25.txt"
+    tableInfo_25 = np.loadtxt(dataFilePath_25,delimiter=" ",dtype= str)
+    data2_25 = tableInfo_25[:,0:1].astype(float)
+
+    dataFilePath_15 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table2_15.txt"
+    tableInfo_15 = np.loadtxt(dataFilePath_15,delimiter=" ",dtype= str)
+    data2_15 = tableInfo_15[:,0:1].astype(float)
+
+    dataFilePath_20 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table2_20.txt"
+    tableInfo_20 = np.loadtxt(dataFilePath_20,delimiter=" ",dtype= str)
+    data2_20 = tableInfo_20[:,0:1].astype(float)
+
+    dataFilePath_30 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table2_30.txt"
+    tableInfo_30 = np.loadtxt(dataFilePath_30,delimiter=" ",dtype= str)
+    data2_30 = tableInfo_30[:,0:1].astype(float)
+    
+###This function plots fraction of trapped stars over time for each theta
+def trap_plot():
+    dat_import2()   #import the data
+    t = data2_15[:,0]
+    trap_frac15 = data2_15[:,1]
+    trap_frac20 = data2_20[:,1]
+    trap_frac25 = data2_25[:,1]
+    trap_frac30 = data2_30[:,1]
+    
+    #close previous plots
+    plt.close('all')
+    #plot it on one graph
+    plt.plot(t, trap_frac15, label='Theta = 15', color='green')
+    plt.plot(t, trap_frac20, label='Theta = 20', color='blue')
+    plt.plot(t, trap_frac25, label='Theta = 25', color='purple')
+    plt.plot(t, trap_frac30, label='Theta = 30', color='black')
+    plt.xlabel('Time')
+    plt.ylabel('Fraction of remaining trapped stars')
+    plt.title('Trapped orbit fraction over time')
+    plt.legend(loc='1')
+    plt.show()
+    
+###This function plots rms of change in angmom over time for each theta
+def angmom_plot():
+    dat_import2()   #import the data
+    t = data2_15[:,0]
+    Lz_rms15 = data2_15[:,2]
+    Lz_rms20 = data2_20[:,2]
+    Lz_rms25 = data2_25[:,2]
+    Lz_rms30 = data2_30[:,2]
+    
+    #close previous plots
+    plt.close('all')
+    #plot it on one graph
+    plt.plot(t, Lz_rms15, label='Theta = 15', color='green')
+    plt.plot(t, Lz_rms20, label='Theta = 20', color='blue')
+    plt.plot(t, Lz_rms25, label='Theta = 25', color='purple')
+    plt.plot(t, Lz_rms30, label='Theta = 30', color='black')
+    plt.xlabel('Time')
+    plt.ylabel('rms of change in angmom')
+    plt.title('rms angmom')
+    plt.legend(loc='1')
+    plt.show()
+
 ###This function returns rms of angmom for each theta at different time intervals
 def Lz_rms():
     dat_import()    #imports the data
@@ -164,88 +226,88 @@ def Lz_plot():
     #THETA OF 15
     #t=0.5
     ax1 = fig.add_subplot(4,4,1,aspect='auto')
-    H1, xedges1, yedges1 = np.histogram2d(Lz_15_0, del_15_1, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H1, xedges1, yedges1 = np.histogram2d(Lz_15_0, del_15_1, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent1  =[xedges1[0],xedges1[-1],yedges1[0],yedges1[-1]]
     im = plt.imshow(H1.T,origin='low',extent=myextent1,interpolation='nearest',aspect='auto', cmap=color)
     #t=1.0
     ax2 = fig.add_subplot(4,4,2,aspect='auto')
-    H2, xedges2, yedges2 = np.histogram2d(Lz_15_0, del_15_2, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H2, xedges2, yedges2 = np.histogram2d(Lz_15_0, del_15_2, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent2  =[xedges2[0],xedges2[-1],yedges2[0],yedges2[-1]]
     plt.imshow(H2.T,origin='low',extent=myextent2,interpolation='nearest',aspect='auto', cmap=color)
     #t=1.5
     ax3 = fig.add_subplot(4,4,3,aspect='auto')
-    H3, xedges3, yedges3 = np.histogram2d(Lz_15_0, del_15_3, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H3, xedges3, yedges3 = np.histogram2d(Lz_15_0, del_15_3, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent3  =[xedges3[0],xedges3[-1],yedges3[0],yedges3[-1]]
     plt.imshow(H3.T,origin='low',extent=myextent3,interpolation='nearest',aspect='auto', cmap=color)
     #t=2.0
     ax4 = fig.add_subplot(4,4,4,aspect='auto')
-    H4, xedges4, yedges4 = np.histogram2d(Lz_15_0, del_15_4, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H4, xedges4, yedges4 = np.histogram2d(Lz_15_0, del_15_4, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent4  =[xedges4[0],xedges4[-1],yedges4[0],yedges4[-1]]
     plt.imshow(H4.T,origin='low',extent=myextent4,interpolation='nearest',aspect='auto', cmap=color)
     
     #THETA OF 20
     #t=0.5
     ax5 = fig.add_subplot(4,4,5,aspect='auto')
-    H1, xedges1, yedges1 = np.histogram2d(Lz_20_0, del_20_1, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H1, xedges1, yedges1 = np.histogram2d(Lz_20_0, del_20_1, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent1  =[xedges1[0],xedges1[-1],yedges1[0],yedges1[-1]]
     plt.imshow(H1.T,origin='low',extent=myextent1,interpolation='nearest',aspect='auto', cmap=color)
     #t=1.0
     ax6 = fig.add_subplot(4,4,6,aspect='auto')
-    H2, xedges2, yedges2 = np.histogram2d(Lz_20_0, del_20_2, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H2, xedges2, yedges2 = np.histogram2d(Lz_20_0, del_20_2, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent2  =[xedges2[0],xedges2[-1],yedges2[0],yedges2[-1]]
     plt.imshow(H2.T,origin='low',extent=myextent2,interpolation='nearest',aspect='auto', cmap=color)
     #t=1.5
     ax7 = fig.add_subplot(4,4,7,aspect='auto')
-    H3, xedges3, yedges3 = np.histogram2d(Lz_20_0, del_20_3, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H3, xedges3, yedges3 = np.histogram2d(Lz_20_0, del_20_3, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent3  =[xedges3[0],xedges3[-1],yedges3[0],yedges3[-1]]
     plt.imshow(H3.T,origin='low',extent=myextent3,interpolation='nearest',aspect='auto', cmap=color)
     #t=2.0
     ax8 = fig.add_subplot(4,4,8,aspect='auto')
-    H4, xedges4, yedges4 = np.histogram2d(Lz_20_0, del_20_4, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H4, xedges4, yedges4 = np.histogram2d(Lz_20_0, del_20_4, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent4  =[xedges4[0],xedges4[-1],yedges4[0],yedges4[-1]]
     plt.imshow(H4.T,origin='low',extent=myextent4,interpolation='nearest',aspect='auto', cmap=color)
     
     #THETA OF 25
     #t=0.5
     ax9 = fig.add_subplot(4,4,9,aspect='auto')
-    H1, xedges1, yedges1 = np.histogram2d(Lz_25_0, del_25_1, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H1, xedges1, yedges1 = np.histogram2d(Lz_25_0, del_25_1, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent1  =[xedges1[0],xedges1[-1],yedges1[0],yedges1[-1]]
     plt.imshow(H1.T,origin='low',extent=myextent1,interpolation='nearest',aspect='auto', cmap=color)
     #t=1.0
     ax10 = fig.add_subplot(4,4,10,aspect='auto')
-    H2, xedges2, yedges2 = np.histogram2d(Lz_25_0, del_25_2, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H2, xedges2, yedges2 = np.histogram2d(Lz_25_0, del_25_2, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent2  =[xedges2[0],xedges2[-1],yedges2[0],yedges2[-1]]
     plt.imshow(H2.T,origin='low',extent=myextent2,interpolation='nearest',aspect='auto', cmap=color)
     #t=1.5
     ax11 = fig.add_subplot(4,4,11,aspect='auto')
-    H3, xedges3, yedges3 = np.histogram2d(Lz_25_0, del_25_3, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H3, xedges3, yedges3 = np.histogram2d(Lz_25_0, del_25_3, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent3  =[xedges3[0],xedges3[-1],yedges3[0],yedges3[-1]]
     plt.imshow(H3.T,origin='low',extent=myextent3,interpolation='nearest',aspect='auto', cmap=color)
     #t=2.0
     ax12 = fig.add_subplot(4,4,12,aspect='auto')
-    H4, xedges4, yedges4 = np.histogram2d(Lz_25_0, del_25_4, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H4, xedges4, yedges4 = np.histogram2d(Lz_25_0, del_25_4, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent4  =[xedges4[0],xedges4[-1],yedges4[0],yedges4[-1]]
     plt.imshow(H4.T,origin='low',extent=myextent4,interpolation='nearest',aspect='auto', cmap=color)
     
     #THETA OF 30
     #t=0.5
     ax13 = fig.add_subplot(4,4,13,aspect='auto')
-    H1, xedges1, yedges1 = np.histogram2d(Lz_30_0, del_30_1, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H1, xedges1, yedges1 = np.histogram2d(Lz_30_0, del_30_1, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent1  =[xedges1[0],xedges1[-1],yedges1[0],yedges1[-1]]
     plt.imshow(H1.T,origin='low',extent=myextent1,interpolation='nearest',aspect='auto', cmap=color)
     #t=1.0
     ax14 = fig.add_subplot(4,4,14,aspect='auto')
-    H2, xedges2, yedges2 = np.histogram2d(Lz_30_0, del_30_2, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H2, xedges2, yedges2 = np.histogram2d(Lz_30_0, del_30_2, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent2  =[xedges2[0],xedges2[-1],yedges2[0],yedges2[-1]]
     plt.imshow(H2.T,origin='low',extent=myextent2,interpolation='nearest',aspect='auto', cmap=color)
     #t=1.5
     ax15 = fig.add_subplot(4,4,15,aspect='auto')
-    H3, xedges3, yedges3 = np.histogram2d(Lz_30_0, del_30_3, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H3, xedges3, yedges3 = np.histogram2d(Lz_30_0, del_30_3, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent3  =[xedges3[0],xedges3[-1],yedges3[0],yedges3[-1]]
     plt.imshow(H3.T,origin='low',extent=myextent3,interpolation='nearest',aspect='auto', cmap=color)
     #t=2.0
     ax16 = fig.add_subplot(4,4,16,aspect='auto')
-    H4, xedges4, yedges4 = np.histogram2d(Lz_30_0, del_30_4, range=[[500,3500], [-500,500]], bins=(80, 60))
+    H4, xedges4, yedges4 = np.histogram2d(Lz_30_0, del_30_4, range=[[500,3500], [-600,600]], bins=(80, 60))
     myextent4  =[xedges4[0],xedges4[-1],yedges4[0],yedges4[-1]]
     plt.imshow(H4.T,origin='low',extent=myextent4,interpolation='nearest',aspect='auto', cmap=color)
     
