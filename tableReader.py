@@ -100,7 +100,7 @@ def angmom_plot():
     plt.plot(t, Lz_rms25, label='Theta = 25', color='purple')
     plt.plot(t, Lz_rms30, label='Theta = 30', color='black')
     plt.xlabel('Time (years)',size=18)
-    plt.ylabel('rms of $\Delta$L', size=18)
+    plt.ylabel(r'rms of $\Delta$L ($kpc\frac{km}{s}$)', size=18)
     plt.title('Change in Angular Momenta per Theta', size=22)
     plt.legend(loc='1')
     plt.show()
