@@ -22,6 +22,9 @@ def parseList(files):
  
 def genTable(filepath):
     table = []
+    qp_len = 2001.       #the length of qp, can't figure out how to code that in
+    table2 = np.zeros(qp_len)  
+    table3 = np.zeros(qp_len)  
     for dirpath, dirnames, files in os.walk(filepath):
         for f in files:
             fullpath = os.path.join(dirpath, f) #get full path of subject file
@@ -35,11 +38,21 @@ def genTable(filepath):
                 data = np.c_[data[:,1:5] ,t] 
                 data[:,2] = data[:,2]*9.777922216731282e+8
                 data[:,3] = data[:,3]*9.777922216731282e+8
-                orbit.setqp(data)   
+                orbit.setqp(data)
+                lam = orbit.findLam()[0]
+                if np.absolute(lam[0]) < 1.:
+                       table2 += (np.absolute(lam) < 1.)
+                       angmom = orbit.findLam()[0]
+                       angmom_del = angmom - angmom[0]
+                       angmom_del = angmom_del**2
+                       table3 += angmom_del                     
                 lamsp = orbit.Lam_special()
                 Lz = orbit.findLz()
                 table.append([dirpath+'/'+f,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],lamsp,Lz[0],Lz[1],Lz[2],Lz[3],Lz[4]]) 
-    return np.array(table)
+    table3 = np.sqrt(table3/qp_len)
+    table2 = table2/(table2[0])
+    table_final = np.vstack((table2,table3))
+    return np.array(table), table_final.transpose()
 
 def unTar(filepath):
     for dirpath, dirnames, files in os.walk(filepath):
