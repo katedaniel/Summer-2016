@@ -42,7 +42,7 @@ def genTable(filepath):
                 lam = orbit.findLam()[0]
                 if np.absolute(lam[0]) < 1.:
                        table2 += (np.absolute(lam) < 1.)
-                       angmom = orbit.findLam()[0]
+                       angmom = orbit.findLam()[3]
                        angmom_del = angmom - angmom[0]
                        angmom_del = angmom_del**2
                        table3 += angmom_del                     
