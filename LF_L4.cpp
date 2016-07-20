@@ -75,7 +75,7 @@ int main()
    double CR;
    CR = 8.0;
    float thetain;
-   thetain = 25.0;
+   thetain = 20.0;
    float epsilon;
    epsilon = 0.3;
    int m;
