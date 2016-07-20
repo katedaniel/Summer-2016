@@ -1,97 +1,32 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import Orbit_Code 
 reload(Orbit_Code)
 
-###Function used to pull initial data from a filename for an orbit
-def parseFilename(filename):
-   
-    parts = filename.split("=")
-    args = []
-    for l in range(1, len(parts)):
-        num = float(parts[l].split(")")[0])
-        args.append(num)
-    return args
+filepath = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/" 
 
-###Plots a single orbit in the rotating frame, given its filepath from the table 
-def plotOrbit(filename):    
-    #filename = "C:/Trapped_Orbital_Integrator/tar_master_20/qp_file_1/qp_(m=4)_(th=20)_(t=2)_(CR=8)_(eps=0.3)_(x0=-10.79)_(y0=1.29787)_(vx0=27.5492)_(vy0=-176.19).txt"
-    a = parseFilename(filename)
-    orbit = Orbit_Code.Orbit_Calculator(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8])
-    data = np.loadtxt(filename,delimiter=" ",dtype= str).astype(float)
-    t = data[:,0]   #next two lines switch order of t,x,y,vx,vy to x,y,vx,vy,t
-    data = np.c_[data[:,1:5] ,t] 
-    orbit.setqp(data)   
-    orbit.plot(1)
+#Get names of text files        
+files1 = [i for i in os.listdir(filepath) if os.path.isfile(os.path.join(filepath,i)) and 'table1' in i]
+files2 = [i for i in os.listdir(filepath) if os.path.isfile(os.path.join(filepath,i)) and 'table2' in i]
 
-###Imports all the table data
-dataFilePath_25 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table_25.txt"
-tableInfo_25 = np.loadtxt(dataFilePath_25,delimiter=" ",dtype= str)
-filepaths_25 = tableInfo_25[:,0]
-data_25 = tableInfo_25[:,1:16].astype(float)
+#Import all data
+tableInfo1 = np.array([np.loadtxt(filepath+files1[i],delimiter=" ",dtype= str)[:,1:16].astype(float) for i in range(len(files1))]) 
+tableInfo2 = np.array([np.loadtxt(filepath+files2[i],delimiter=" ",dtype= str).astype(float) for i in range(len(files2))]) 
 
-dataFilePath_15 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table_15.txt"
-tableInfo_15 = np.loadtxt(dataFilePath_15,delimiter=" ",dtype= str)
-filepaths_15 = tableInfo_15[:,0]
-data_15 = tableInfo_15[:,1:16].astype(float)
-
-dataFilePath_20 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table_20.txt"
-tableInfo_20 = np.loadtxt(dataFilePath_20,delimiter=" ",dtype= str)
-filepaths_20 = tableInfo_20[:,0]
-data_20 = tableInfo_20[:,1:16].astype(float)
-
-dataFilePath_30 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table_30.txt"
-tableInfo_30 = np.loadtxt(dataFilePath_30,delimiter=" ",dtype= str)
-filepaths_30 = tableInfo_30[:,0]
-data_30 = tableInfo_30[:,1:16].astype(float)
-
-###Imports data for angmom rms and trap_frac plots
-dataFilePath_25 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table2_25.txt"
-tableInfo_25 = np.loadtxt(dataFilePath_25,delimiter=" ",dtype= str)
-data2_25 = tableInfo_25[:,0:3].astype(float)
-
-dataFilePath_15 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table2_15.txt"
-tableInfo_15 = np.loadtxt(dataFilePath_15,delimiter=" ",dtype= str)
-data2_15 = tableInfo_15[:,0:3].astype(float)
-
-dataFilePath_20 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table2_20.txt"
-tableInfo_20 = np.loadtxt(dataFilePath_20,delimiter=" ",dtype= str)
-data2_20 = tableInfo_20[:,0:3].astype(float)
-
-dataFilePath_30 = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table2_30.txt"
-tableInfo_30 = np.loadtxt(dataFilePath_30,delimiter=" ",dtype= str)
-data2_30 = tableInfo_30[:,0:3].astype(float)
-    
 ###This function plots fraction of trapped stars over time for each theta
 def trap_plot():
-    t = data2_15[:,0]
-    trap_frac15 = data2_15[:,1]
-    trap_frac20 = data2_20[:,1]
-    trap_frac25 = data2_25[:,1]
-    trap_frac30 = data2_30[:,1]
     
-    #count number of initially trapped stars for each theta
-    lam_spec15 = data_15[:,9]
-    lam_spec20 = data_20[:,9]
-    lam_spec25 = data_25[:,9]
-    lam_spec30 = data_30[:,9]
-    start_trapped15 = float((lam_spec15 == 0).sum()+(lam_spec15 == 1).sum()+(lam_spec15 == 2).sum())
-    start_trapped20 = float((lam_spec20 == 0).sum()+(lam_spec20 == 1).sum()+(lam_spec20 == 2).sum())
-    start_trapped25 = float((lam_spec25 == 0).sum()+(lam_spec25 == 1).sum()+(lam_spec25 == 2).sum())
-    start_trapped30 = float((lam_spec30 == 0).sum()+(lam_spec30 == 1).sum()+(lam_spec30 == 2).sum())
+    t = tableInfo2[0][:,0] 
+    trap_frac = np.array([tableInfo2[i][:,1] for i in range(len(tableInfo2))])
+    lam_spec = np.array([tableInfo1[i][:,9] for i in range(len(tableInfo1))])
+    start_trapped = [(lam_spec[i] == 0).sum()+(lam_spec[i] == 1).sum()+(lam_spec[i] == 2).sum() for i in range(len(tableInfo2))]
     
-    #close previous plots
     plt.close('all')
-    #plot it on one graph
-    plt.plot(t, trap_frac15, label='Theta = 15 (%s at t=0)' % (start_trapped15), color='green')
-    plt.plot(t, trap_frac20, label='Theta = 20 (%s at t=0)' % (start_trapped20), color='blue')
-    plt.plot(t, trap_frac25, label='Theta = 25 (%s at t=0)' % (start_trapped25), color='purple')
-    plt.plot(t, trap_frac30, label='Theta = 30 (%s at t=0)' % (start_trapped30), color='black')
-    #add some labels and titles and stuff
-    #plt.text(1.e+8,0.95, 'Initially trapped for THETA = 15: %s' % (start_trapped15),size=15)
-    #plt.text(1.e+8,0.9, 'Initially trapped for THETA = 20: %s' % (start_trapped20),size=15)
-    #plt.text(1.e+8,0.85, 'Initially trapped for THETA = 25: %s' % (start_trapped25),size=15)
-    #plt.text(1.e+8,0.8, 'Initially trapped for THETA = 30: %s' % (start_trapped30),size=15)
+    colors = ['green','blue','purple','black']
+    labels = ['Theta = 15 (%s at t=0)','Theta = 20 (%s at t=0)','Theta = 25 (%s at t=0)','Theta = 30 (%s at t=0)']
+    [plt.plot(t, trap_frac[i], label=labels[i] % (start_trapped[i]), color=colors[i])for i in range(len(tableInfo2))]
+    
     plt.xlabel('Time (years)',size=18)
     plt.ylabel('Trapped stars (normalized)',size=18)
     plt.title('Fraction of Trapped Stars per Theta', size=22)
@@ -100,326 +35,77 @@ def trap_plot():
     
 ###This function plots rms of change in angmom over time for each theta
 def angmom_plot():
-    #import that data
-    t = data2_15[:,0]
-    Lz_rms15 = data2_15[:,2]
-    Lz_rms20 = data2_20[:,2]
-    Lz_rms25 = data2_25[:,2]
-    Lz_rms30 = data2_30[:,2]
     
-    #count number of initially trapped stars for each theta
-    lam_spec15 = data_15[:,9]
-    lam_spec20 = data_20[:,9]
-    lam_spec25 = data_25[:,9]
-    lam_spec30 = data_30[:,9]
-    start_trapped15 = float((lam_spec15 == 0).sum()+(lam_spec15 == 1).sum()+(lam_spec15 == 2).sum())
-    start_trapped20 = float((lam_spec20 == 0).sum()+(lam_spec20 == 1).sum()+(lam_spec20 == 2).sum())
-    start_trapped25 = float((lam_spec25 == 0).sum()+(lam_spec25 == 1).sum()+(lam_spec25 == 2).sum())
-    start_trapped30 = float((lam_spec30 == 0).sum()+(lam_spec30 == 1).sum()+(lam_spec30 == 2).sum())
+    t = tableInfo2[0][:,0] 
+    Lz_rms = np.array([tableInfo2[i][:,2] for i in range(len(tableInfo2))])
+    lam_spec = np.array([tableInfo1[i][:,9] for i in range(len(tableInfo1))])
+    start_trapped = [(lam_spec[i] == 0).sum()+(lam_spec[i] == 1).sum()+(lam_spec[i] == 2).sum() for i in range(len(tableInfo1))]
     
-    #close previous plots
     plt.close('all')
-    #plot it on one graph
-    plt.plot(t, (Lz_rms15/start_trapped15), label='Theta = 15', color='green')
-    plt.plot(t, (Lz_rms20/start_trapped20), label='Theta = 20', color='blue')
-    plt.plot(t, (Lz_rms25/start_trapped25), label='Theta = 25', color='purple')
-    plt.plot(t, (Lz_rms30/start_trapped30), label='Theta = 30', color='black')
+    colors = ['green','blue','purple','black']
+    labels = ['Theta = 15','Theta = 20','Theta = 25','Theta = 30']
+    [plt.plot(t, Lz_rms[i]/start_trapped[i], label=labels[i], color=colors[i])for i in range(len(tableInfo2))]
+    
     plt.xlabel('Time (years)',size=18)
     plt.ylabel(r'rms of $\Delta$L ($kpc\frac{km}{s}$) (normalized)', size=18)
     plt.title('Change in Angular Momenta per Theta', size=22)
     plt.legend(loc='upper left')
     plt.show()
-
+    
 ###This function returns rms of angmom for each theta at different time intervals
 def Lz_rms():
-    #calculate rms of Lz for THETA OF 15
-    rms15_1 = np.sqrt((data_15[:,[10,11]]**2).mean(axis=1)) #rms 0 to 0.5
-    rms15_2 = np.sqrt((data_15[:,[10,12]]**2).mean(axis=1)) #rms 0 to 1
-    rms15_3 = np.sqrt((data_15[:,[10,13]]**2).mean(axis=1)) #rms 0 to 1.5
-    rms15_4 = np.sqrt((data_15[:,[10,14]]**2).mean(axis=1)) #rms 0 to 2.0
-    #calculate rms of Lz for THETA OF 20
-    rms20_1 = np.sqrt((data_20[:,[10,11]]**2).mean(axis=1)) #rms 0 to 0.5
-    rms20_2 = np.sqrt((data_20[:,[10,12]]**2).mean(axis=1)) #rms 0 to 1
-    rms20_3 = np.sqrt((data_20[:,[10,13]]**2).mean(axis=1)) #rms 0 to 1.5
-    rms20_4 = np.sqrt((data_20[:,[10,14]]**2).mean(axis=1)) #rms 0 to 2.0
-    #calculate rms of Lz for THETA OF 25
-    rms25_1 = np.sqrt((data_25[:,[10,11]]**2).mean(axis=1)) #rms 0 to 0.5
-    rms25_2 = np.sqrt((data_25[:,[10,12]]**2).mean(axis=1)) #rms 0 to 1
-    rms25_3 = np.sqrt((data_25[:,[10,13]]**2).mean(axis=1)) #rms 0 to 1.5
-    rms25_4 = np.sqrt((data_25[:,[10,14]]**2).mean(axis=1)) #rms 0 to 2.0
-    #calculate rms of Lz for THETA OF 30
-    rms30_1 = np.sqrt((data_30[:,[10,11]]**2).mean(axis=1)) #rms 0 to 0.5
-    rms30_2 = np.sqrt((data_30[:,[10,12]]**2).mean(axis=1)) #rms 0 to 1
-    rms30_3 = np.sqrt((data_30[:,[10,13]]**2).mean(axis=1)) #rms 0 to 1.5
-    rms30_4 = np.sqrt((data_30[:,[10,14]]**2).mean(axis=1)) #rms 0 to 2.0
-    #put the rms values into arrays and return them
-    rms_15 = np.array([rms15_1,rms15_2,rms15_3,rms15_4])
-    rms_20 = np.array([rms20_1,rms20_2,rms20_3,rms20_4])
-    rms_25 = np.array([rms25_1,rms25_2,rms25_3,rms25_4])
-    rms_30 = np.array([rms30_1,rms30_2,rms30_3,rms30_4])
-    rms_all = [rms_15,rms_20,rms_25,rms_30]
-    return rms_all
+    num = [11,12,13,14]
+    rms = np.array([np.sqrt((tableInfo1[i][:,[10,num[j]]]**2).mean(axis=1)) for i in range(len(tableInfo1)) for j in range(len(num))])
+    return rms.reshape(len(tableInfo1),4)
 
 ###This function returns the fraction of initially trapped orbits that end trapped for each theta
 def trap_frac():
-    #pull lambda values for THETA OF 15, find number of orbits that start trapped and end trapped
-    lam_spec15 = data_15[:,9]
-    start_trapped15 = float((lam_spec15 == 0).sum()+(lam_spec15 == 1).sum()+(lam_spec15 == 2).sum())
-    end_trapped15 = float((lam_spec15 == 0).sum()+(lam_spec15 == 1).sum())
-    #pull lambda values for THETA OF 20, find number of orbits that start trapped and end trapped
-    lam_spec20 = data_20[:,9]
-    start_trapped20 = float((lam_spec20 == 0).sum()+(lam_spec20 == 1).sum()+(lam_spec20 == 2).sum())
-    end_trapped20 = float((lam_spec20 == 0).sum()+(lam_spec20 == 1).sum())
-    #pull lambda values for THETA OF 25, find number of orbits that start trapped and end trapped
-    lam_spec25 = data_25[:,9]
-    start_trapped25 = float((lam_spec25 == 0).sum()+(lam_spec25 == 1).sum()+(lam_spec25 == 2).sum())
-    end_trapped25 = float((lam_spec25 == 0).sum()+(lam_spec25 == 1).sum())
-    #pull lambda values for THETA OF 30, find number of orbits that start trapped and end trapped
-    lam_spec30 = data_30[:,9]
-    start_trapped30 = float((lam_spec30 == 0).sum()+(lam_spec30 == 1).sum()+(lam_spec30 == 2).sum())
-    end_trapped30 = float((lam_spec30 == 0).sum()+(lam_spec30 == 1).sum())
-    #claculate fraction of initially trapped orbits that end trapped
-    trap_frac15 = end_trapped15/start_trapped15
-    trap_frac20 = end_trapped20/start_trapped20
-    trap_frac25 = end_trapped25/start_trapped25
-    trap_frac30 = end_trapped30/start_trapped30
-    return np.array([trap_frac15,trap_frac20,trap_frac25,trap_frac30])
+    lam_spec = np.array([tableInfo1[i][:,9] for i in range(len(tableInfo1))])
+    start_trapped = np.array([float((lam_spec[i] == 0).sum()+(lam_spec[i] == 1).sum()+(lam_spec[i] == 2).sum()) for i in range(len(tableInfo1))])
+    end_trapped = np.array([float((lam_spec[i] == 0).sum()+(lam_spec[i] == 1).sum()) for i in range(len(tableInfo1))])
+    #calculate fraction of initially trapped orbits that end trapped
+    trap_frac = end_trapped/start_trapped
+    return trap_frac
 
-###This is a very long and quickly made function that amkes 16 subplots
-#it gives information on the evolution of angmom based on different thetas
 def Lz_plot():
-    #pulling angmom data
-    Lz_15 = data_15[:,[10,11,12,13,14]]
-    Lz_20 = data_20[:,[10,11,12,13,14]]
-    Lz_25 = data_25[:,[10,11,12,13,14]]
-    Lz_30 = data_30[:,[10,11,12,13,14]]
-    #data analysis for THETA 15
-    Lz_15_0 = Lz_15[:,0]#initial angmom
-    Lz_15_1 = Lz_15[:,1]#angmom at t=0.5
-    Lz_15_2 = Lz_15[:,2]#angmom at t=1.0
-    Lz_15_3 = Lz_15[:,3]#angmom at t=1.5
-    Lz_15_4 = Lz_15[:,4]#angmom at t=2.0
-    del_15_1 = np.subtract(Lz_15_1,Lz_15_0)#change in angmom after t=0.5
-    del_15_2 = np.subtract(Lz_15_2,Lz_15_0)#change in angmom after t=1.0
-    del_15_3 = np.subtract(Lz_15_3,Lz_15_0)#change in angmom after t=1.5
-    del_15_4 = np.subtract(Lz_15_4,Lz_15_0)#change in angmom after t=2.0
-    #data analysis for THETA 20
-    Lz_20_0 = Lz_20[:,0]
-    Lz_20_1 = Lz_20[:,1]
-    Lz_20_2 = Lz_20[:,2]
-    Lz_20_3 = Lz_20[:,3]
-    Lz_20_4 = Lz_20[:,4]
-    del_20_1 = np.subtract(Lz_20_1,Lz_20_0)
-    del_20_2 = np.subtract(Lz_20_2,Lz_20_0)
-    del_20_3 = np.subtract(Lz_20_3,Lz_20_0)
-    del_20_4 = np.subtract(Lz_20_4,Lz_20_0)
-    #data analysis for THETA 15
-    Lz_25_0 = Lz_25[:,0]
-    Lz_25_1 = Lz_25[:,1]
-    Lz_25_2 = Lz_25[:,2]
-    Lz_25_3 = Lz_25[:,3]
-    Lz_25_4 = Lz_25[:,4]
-    del_25_1 = np.subtract(Lz_25_1,Lz_25_0)
-    del_25_2 = np.subtract(Lz_25_2,Lz_25_0)
-    del_25_3 = np.subtract(Lz_25_3,Lz_25_0)
-    del_25_4 = np.subtract(Lz_25_4,Lz_25_0)
-    #data analysis for THETA 15
-    Lz_30_0 = Lz_30[:,0]
-    Lz_30_1 = Lz_30[:,1]
-    Lz_30_2 = Lz_30[:,2]
-    Lz_30_3 = Lz_30[:,3]
-    Lz_30_4 = Lz_30[:,4]
-    del_30_1 = np.subtract(Lz_30_1,Lz_30_0)
-    del_30_2 = np.subtract(Lz_30_2,Lz_30_0)
-    del_30_3 = np.subtract(Lz_30_3,Lz_30_0)
-    del_30_4 = np.subtract(Lz_30_4,Lz_30_0)
-    
-    plt.close('all')
-    
-    #MAKING THE SUBPLOTS
-    
-    fig = plt.figure()
-    fig.subplots_adjust(wspace=0,hspace=0)
-    color = 'PuBuGn'
-    
-    #THETA OF 15
-    #t=0.5
-    ax1 = fig.add_subplot(4,4,1,aspect='auto')
-    H1, xedges1, yedges1 = np.histogram2d(Lz_15_0, del_15_1, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent1  =[xedges1[0],xedges1[-1],yedges1[0],yedges1[-1]]
-    im = plt.imshow(H1.T,origin='low',extent=myextent1,interpolation='nearest',aspect='auto', cmap=color)
-    #t=1.0
-    ax2 = fig.add_subplot(4,4,2,aspect='auto')
-    H2, xedges2, yedges2 = np.histogram2d(Lz_15_0, del_15_2, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent2  =[xedges2[0],xedges2[-1],yedges2[0],yedges2[-1]]
-    plt.imshow(H2.T,origin='low',extent=myextent2,interpolation='nearest',aspect='auto', cmap=color)
-    #t=1.5
-    ax3 = fig.add_subplot(4,4,3,aspect='auto')
-    H3, xedges3, yedges3 = np.histogram2d(Lz_15_0, del_15_3, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent3  =[xedges3[0],xedges3[-1],yedges3[0],yedges3[-1]]
-    plt.imshow(H3.T,origin='low',extent=myextent3,interpolation='nearest',aspect='auto', cmap=color)
-    #t=2.0
-    ax4 = fig.add_subplot(4,4,4,aspect='auto')
-    H4, xedges4, yedges4 = np.histogram2d(Lz_15_0, del_15_4, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent4  =[xedges4[0],xedges4[-1],yedges4[0],yedges4[-1]]
-    plt.imshow(H4.T,origin='low',extent=myextent4,interpolation='nearest',aspect='auto', cmap=color)
-    
-    #THETA OF 20
-    #t=0.5
-    ax5 = fig.add_subplot(4,4,5,aspect='auto')
-    H1, xedges1, yedges1 = np.histogram2d(Lz_20_0, del_20_1, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent1  =[xedges1[0],xedges1[-1],yedges1[0],yedges1[-1]]
-    plt.imshow(H1.T,origin='low',extent=myextent1,interpolation='nearest',aspect='auto', cmap=color)
-    #t=1.0
-    ax6 = fig.add_subplot(4,4,6,aspect='auto')
-    H2, xedges2, yedges2 = np.histogram2d(Lz_20_0, del_20_2, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent2  =[xedges2[0],xedges2[-1],yedges2[0],yedges2[-1]]
-    plt.imshow(H2.T,origin='low',extent=myextent2,interpolation='nearest',aspect='auto', cmap=color)
-    #t=1.5
-    ax7 = fig.add_subplot(4,4,7,aspect='auto')
-    H3, xedges3, yedges3 = np.histogram2d(Lz_20_0, del_20_3, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent3  =[xedges3[0],xedges3[-1],yedges3[0],yedges3[-1]]
-    plt.imshow(H3.T,origin='low',extent=myextent3,interpolation='nearest',aspect='auto', cmap=color)
-    #t=2.0
-    ax8 = fig.add_subplot(4,4,8,aspect='auto')
-    H4, xedges4, yedges4 = np.histogram2d(Lz_20_0, del_20_4, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent4  =[xedges4[0],xedges4[-1],yedges4[0],yedges4[-1]]
-    plt.imshow(H4.T,origin='low',extent=myextent4,interpolation='nearest',aspect='auto', cmap=color)
-    
-    #THETA OF 25
-    #t=0.5
-    ax9 = fig.add_subplot(4,4,9,aspect='auto')
-    H1, xedges1, yedges1 = np.histogram2d(Lz_25_0, del_25_1, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent1  =[xedges1[0],xedges1[-1],yedges1[0],yedges1[-1]]
-    plt.imshow(H1.T,origin='low',extent=myextent1,interpolation='nearest',aspect='auto', cmap=color)
-    #t=1.0
-    ax10 = fig.add_subplot(4,4,10,aspect='auto')
-    H2, xedges2, yedges2 = np.histogram2d(Lz_25_0, del_25_2, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent2  =[xedges2[0],xedges2[-1],yedges2[0],yedges2[-1]]
-    plt.imshow(H2.T,origin='low',extent=myextent2,interpolation='nearest',aspect='auto', cmap=color)
-    #t=1.5
-    ax11 = fig.add_subplot(4,4,11,aspect='auto')
-    H3, xedges3, yedges3 = np.histogram2d(Lz_25_0, del_25_3, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent3  =[xedges3[0],xedges3[-1],yedges3[0],yedges3[-1]]
-    plt.imshow(H3.T,origin='low',extent=myextent3,interpolation='nearest',aspect='auto', cmap=color)
-    #t=2.0
-    ax12 = fig.add_subplot(4,4,12,aspect='auto')
-    H4, xedges4, yedges4 = np.histogram2d(Lz_25_0, del_25_4, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent4  =[xedges4[0],xedges4[-1],yedges4[0],yedges4[-1]]
-    plt.imshow(H4.T,origin='low',extent=myextent4,interpolation='nearest',aspect='auto', cmap=color)
-    
-    #THETA OF 30
-    #t=0.5
-    ax13 = fig.add_subplot(4,4,13,aspect='auto')
-    H1, xedges1, yedges1 = np.histogram2d(Lz_30_0, del_30_1, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent1  =[xedges1[0],xedges1[-1],yedges1[0],yedges1[-1]]
-    plt.imshow(H1.T,origin='low',extent=myextent1,interpolation='nearest',aspect='auto', cmap=color)
-    #t=1.0
-    ax14 = fig.add_subplot(4,4,14,aspect='auto')
-    H2, xedges2, yedges2 = np.histogram2d(Lz_30_0, del_30_2, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent2  =[xedges2[0],xedges2[-1],yedges2[0],yedges2[-1]]
-    plt.imshow(H2.T,origin='low',extent=myextent2,interpolation='nearest',aspect='auto', cmap=color)
-    #t=1.5
-    ax15 = fig.add_subplot(4,4,15,aspect='auto')
-    H3, xedges3, yedges3 = np.histogram2d(Lz_30_0, del_30_3, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent3  =[xedges3[0],xedges3[-1],yedges3[0],yedges3[-1]]
-    plt.imshow(H3.T,origin='low',extent=myextent3,interpolation='nearest',aspect='auto', cmap=color)
-    #t=2.0
-    ax16 = fig.add_subplot(4,4,16,aspect='auto')
-    H4, xedges4, yedges4 = np.histogram2d(Lz_30_0, del_30_4, range=[[500,3500], [-500,500]], bins=(80, 60))
-    myextent4  =[xedges4[0],xedges4[-1],yedges4[0],yedges4[-1]]
-    plt.imshow(H4.T,origin='low',extent=myextent4,interpolation='nearest',aspect='auto', cmap=color)
-    
-    #messing with the tick labels to make it look pretty
-    ax2.set_yticklabels([])
-    ax3.set_yticklabels([])
-    ax4.set_yticklabels([])
-    ax6.set_yticklabels([])
-    ax7.set_yticklabels([])
-    ax8.set_yticklabels([])
-    ax10.set_yticklabels([])
-    ax11.set_yticklabels([])
-    ax12.set_yticklabels([])
-    ax14.set_yticklabels([])
-    ax15.set_yticklabels([])
-    ax16.set_yticklabels([])
-    
-    ax1.set_xticklabels([])
-    ax5.set_xticklabels([])
-    ax9.set_xticklabels([])
-    ax4.set_xticklabels([])
-    ax8.set_xticklabels([])
-    ax12.set_xticklabels([])
-    
-    ax13.set_xticklabels(['',1000,'',2000,'',3000])
-    ax14.set_xticklabels(['',1000,'',2000,'',3000])
-    ax15.set_xticklabels(['',1000,'',2000,'',3000])
-    ax16.set_xticklabels(['',1000,'',2000,'',3000])
+    #Extract Lz data and calculate delta Lz
+    Lz = np.array([tableInfo1[i][:,10:15] for i in range(len(tableInfo1))])
+    del_Lz = np.array([np.subtract(Lz[i][:,j+1],Lz[i][:,0]) for i in range(len(tableInfo1)) for j in range (len(Lz[i].transpose())-1)]).reshape(len(files1),4)
 
-    #adding axis labels for the individual subplots
-    ax1.set_ylabel(r'$\theta=15$')
-    ax5.set_ylabel(r'$\theta=20$')
-    ax9.set_ylabel(r'$\theta=25$')
-    ax13.set_ylabel(r'$\theta=30$')
+    #It's plotting time baby ohhhhh yeah leggoooo
+    plt.close('all')    
     
-    ax13.set_xlabel('t=0.5')
-    ax14.set_xlabel('t=1.0')
-    ax15.set_xlabel('t=1.5')
-    ax16.set_xlabel('t=2.0')
+    dimx = len(files1) #n rows of subplots (can be any number depending of how many thetas we want, in this case 4)
+    fig = plt.figure() #create figure
+    fig.subplots_adjust(wspace=0,hspace=0) #some plotting stuff
+    ax = [fig.add_subplot(dimx,4,i+1,aspect = 'auto') for i in range(dimx*4)] #create and add nx4 subplots
     
-    #making vertical lines for CR and lindblad
-    ax1.axvline(1760., color='black', alpha=0.5)
-    ax1.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax1.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax2.axvline(1760., color='black', alpha=0.5)
-    ax2.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax2.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax3.axvline(1760., color='black', alpha=0.5)
-    ax3.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax3.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax4.axvline(1760., color='black', alpha=0.5)
-    ax4.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax4.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax5.axvline(1760., color='black', alpha=0.5)
-    ax5.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax5.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax6.axvline(1760., color='black', alpha=0.5)
-    ax6.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax6.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax7.axvline(1760., color='black', alpha=0.5)
-    ax7.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax7.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax8.axvline(1760., color='black', alpha=0.5)
-    ax8.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax8.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax9.axvline(1760., color='black', alpha=0.5)
-    ax9.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax9.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax10.axvline(1760., color='black', alpha=0.5)
-    ax10.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax10.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax11.axvline(1760., color='black', alpha=0.5)
-    ax11.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax11.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax12.axvline(1760., color='black', alpha=0.5)
-    ax12.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax12.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax13.axvline(1760., color='black', alpha=0.5)
-    ax13.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax13.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax14.axvline(1760., color='black', alpha=0.5)
-    ax14.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax14.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax15.axvline(1760., color='black', alpha=0.5)
-    ax15.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax15.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
-    ax16.axvline(1760., color='black', alpha=0.5)
-    ax16.axvline(2382.25,color='g', ls='dashed', alpha=0.5)
-    ax16.axvline(1137.746,color='g', ls='dashed', alpha=0.5)
+    #Generate histogram stuff
+    histograms = np.array([np.histogram2d(Lz[i][:,0], del_Lz[i,j], range=[[500,3500], [-500,500]], 
+    bins=(80, 60)) for i in range(len(del_Lz)) for j in range(4)])
+    im = [ax[i].imshow(histograms[i,0].T,origin='low',extent=[500.0, 3500.0, -500.0, 500.0],interpolation='nearest',aspect='auto', cmap='PuBuGn') for i in range(len(ax))]
+
+    #Hardcode some plot adjustments
+    #the array lists in the below for loops contain the indeces of the subplots to be adjusted
+    [ax[i-1].set_yticklabels([])  for i in [2,3,4,6,7,8,10,11,12,14,15,16]]
+    [ax[i-1].set_xticklabels([])  for i in [1,5,9,4,8,12]]
+    [ax[i-1].set_xticklabels(['',1,'',2,'',3])  for i in [13,14,15,16]]
     
+    theta_labels = [r'$\theta=15$',r'$\theta=20$',r'$\theta=25$',r'$\theta=30$']
+    time_labels = ['t = 0.5','t = 1.0','t = 1.5','t = 2.0']
+    [ax[val-1].set_ylabel(theta_labels[i])  for i, val in enumerate([1,5,9,13])]
+    [ax[val-1].set_xlabel(time_labels[i])  for i, val in enumerate([13,14,15,16])]
+    
+    #Plot corotation and lindblad resonances
+    for i in range(len(ax)):
+        ax[i].axvline(1760., color='black', alpha=0.5) #corotation
+        ax[i].axvline(2382.25,color='g', ls='dashed', alpha=0.5) #outer harmonic
+        ax[i].axvline(1137.746,color='g', ls='dashed', alpha=0.5)#inner harmonic
+        ax[i].axvline(2071.13,color='g', ls='dotted', alpha=0.5) #outer ultraharmonic
+        ax[i].axvline(1448.87,color='g', ls='dotted', alpha=0.5) #inner ultraharmonic        
     
     #adding overall axis labels, title, and colorbar label
-    fig.text(0.5, 0.02, r'Initial L $(kpc\frac{km}{s})$', ha='center', size=18)
+    fig.text(0.5, 0.02, r'Initial L $(1000 kpc\frac{km}{s})$', ha='center', size=18)
     fig.text(0.02, 0.5, r'$\Delta L (kpc\frac{km}{s})$', va='center', rotation='vertical', size=18)
     fig.text(0.85, 0.87, 'Number\nof Stars')
     plt.suptitle('Change in Angular Momentum', size=22)
@@ -427,5 +113,5 @@ def Lz_plot():
     #slight adjustments and put it all together
     fig.subplots_adjust(right=0.8, bottom=0.17, left=0.17)
     cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
-    fig.colorbar(im, cax=cbar_ax)
+    fig.colorbar(im[0],cax=cbar_ax)
     plt.show()

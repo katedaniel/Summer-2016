@@ -14,7 +14,7 @@ duration = default_timer() - start
 print "time: %s s" % str(duration) 
 '''
 #This table is for individual qp's with some of their data
-dataFilePath = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table_30.txt"
+dataFilePath = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/table1_30.txt"
 np.savetxt(dataFilePath, table.astype(str), delimiter = " ",fmt='%s')
 '''
 #This table is for accumulated data on trapped fraction and angmom rms
