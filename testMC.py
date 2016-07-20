@@ -8,13 +8,11 @@ dim = 16 #dimensions of scatter plot and interval of radii to consider
 def rmse(values):
     return np.sqrt((values**2).mean())
 
-def sort (radius,velocity):
-    
+def sort (radius,velocity):    
     rmsOut = np.array([0,0])
     count = 1 #increments the while loop
     index = 0 #index of lower bound 
-    tempRad = radius[0]
-    
+    tempRad = radius[0]    
     #sweep through sorted indices to determine how to group velocities to calc rms
     while(count < len(radius)):
         if radius[count] > tempRad:
@@ -26,7 +24,7 @@ def sort (radius,velocity):
     return rmsOut[2:,:]
 
 #Specify filepath to the initial conditions data
-filepath = "/Users/LBarbano/Github/Summer-2016/table_theta=20.txt"
+filepath = "/Users/LBarbano/Github/Summer-2016/table1_theta=20.txt"
 tableInfo = np.loadtxt(filepath,delimiter=" ",dtype= str)
 filepaths = tableInfo[:,0]
 data = tableInfo[:,1:16].astype(float)
@@ -97,7 +95,6 @@ fig5 = plt.figure()      #setting up the basic figure with axes and labels
 ax5 = fig5.add_subplot(1,1,1)
 ax5.scatter(phi,theta)
 
-
 bins = 100
 fig6 = plt.figure()      #setting up the basic figure with axes and labels
 ax6 = fig6.add_subplot(1,1,1)
@@ -111,6 +108,15 @@ myextent  = [xedges[0],xedges[-1],yedges[0],yedges[-1]]
 im = ax7.imshow(H.T,origin='low',extent=myextent,interpolation='nearest',aspect ='auto')
 cbar = plt.colorbar(im)
 ax7.set_xlim(0, 15)
+plt.show()
+
+fig8 = plt.figure()
+ax8 = fig8.add_subplot(111)
+H, xedges, yedges = np.histogram2d(x, y, range=[[-16.,16.0], [-16.,16.0]], bins=(80, 80))
+myextent  = [xedges[0],xedges[-1],yedges[0],yedges[-1]]
+im = ax8.imshow(H.T,origin='low',extent=myextent,interpolation='nearest',aspect='equal')
+cbar = plt.colorbar(im)
+
 plt.show()
 
 
