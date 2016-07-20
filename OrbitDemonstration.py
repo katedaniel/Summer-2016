@@ -1,6 +1,7 @@
+#!/usr/bin/env python
+
 '''
 This file demonstrates how to utilize the Orbit_Calculator Class.
-
 Start by importing the Orbit_Calculator class from the file Orbit_Calculator.
 Once it has been imported, type help(Orbit_Calculator) to get a summary of the 
 class's attributes and methods. See the command line for the class summary 
@@ -14,7 +15,6 @@ reload(Orbit_Code)
 '''
 Instantiate an Orbit_Calculator object with the appropriate parameters. The 
 instance of our Orbit_Calculator will be called "orbit"
-
 The arguments are respectively:
 1: number of spiral arms
 2: Duration of simulation (units implicit gigayears)
@@ -36,7 +36,7 @@ Plot the orbit in the non-rotating or rotating frame. The plot method takes an
 argument of 0 to plot the star's orbit in the non-rotating frame and anything else for 
 the rotating frame.
 '''
-fig,ax = orbit.plot(2) 
+fig,ax = orbit.plot(1) 
 
 '''
 To plot the orbit in the rotating frame, it is not necessary to redo the 
@@ -52,14 +52,15 @@ We can also access qp and qpR with the following methods. qp and qpR will be
 stored in a and b respectively
 '''  
 
-a = orbit.getqp()
-b = orbit.getqpR()
+#a = orbit.getqp()
+#b = orbit.getqpR()
 
 '''
 Now we can save the data in the non-rotating frame to our dump folder by using the 
 saveData method. Specifcy a filepath as an argument when saving the data
 '''
-orbit.saveData("/Users/LBarbano/Desktop/QP_Dump/")
+filename = "/Users/LBarbano/Desktop/QP_Dump/"
+orbit.saveData(filename)
 
 '''
 Finally, we can do all of these things simply with the method doAllThings()

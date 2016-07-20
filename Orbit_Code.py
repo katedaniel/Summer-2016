@@ -341,6 +341,7 @@ class Orbit_Calculator(object):
         #calculate ultraharmonic resonance radii
         R_2o = ((2*m)+np.sqrt(2))*vc/((2*m)*OmegaCR)
         R_2i = ((2*m)-np.sqrt(2))*vc/((2*m)*OmegaCR)
+
         #plot the lindblad radii
         lind1 = plt.Circle((0,0), (R_1o/u.kpc), color='g', fill=False,ls = 'dashed')
         lind2 = plt.Circle((0,0), (R_1i/u.kpc), color='g', fill=False,ls = 'dashed')
