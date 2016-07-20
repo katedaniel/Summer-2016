@@ -70,13 +70,28 @@ def trap_plot():
     trap_frac25 = data2_25[:,1]
     trap_frac30 = data2_30[:,1]
     
+    #count number of initially trapped stars for each theta
+    lam_spec15 = data_15[:,9]
+    lam_spec20 = data_20[:,9]
+    lam_spec25 = data_25[:,9]
+    lam_spec30 = data_30[:,9]
+    start_trapped15 = float((lam_spec15 == 0).sum()+(lam_spec15 == 1).sum()+(lam_spec15 == 2).sum())
+    start_trapped20 = float((lam_spec20 == 0).sum()+(lam_spec20 == 1).sum()+(lam_spec20 == 2).sum())
+    start_trapped25 = float((lam_spec25 == 0).sum()+(lam_spec25 == 1).sum()+(lam_spec25 == 2).sum())
+    start_trapped30 = float((lam_spec30 == 0).sum()+(lam_spec30 == 1).sum()+(lam_spec30 == 2).sum())
+    
     #close previous plots
     plt.close('all')
     #plot it on one graph
-    plt.plot(t, trap_frac15, label='Theta = 15', color='green')
-    plt.plot(t, trap_frac20, label='Theta = 20', color='blue')
-    plt.plot(t, trap_frac25, label='Theta = 25', color='purple')
-    plt.plot(t, trap_frac30, label='Theta = 30', color='black')
+    plt.plot(t, trap_frac15, label='Theta = 15 (%s at t=0)' % (start_trapped15), color='green')
+    plt.plot(t, trap_frac20, label='Theta = 20 (%s at t=0)' % (start_trapped20), color='blue')
+    plt.plot(t, trap_frac25, label='Theta = 25 (%s at t=0)' % (start_trapped25), color='purple')
+    plt.plot(t, trap_frac30, label='Theta = 30 (%s at t=0)' % (start_trapped30), color='black')
+    #add some labels and titles and stuff
+    #plt.text(1.e+8,0.95, 'Initially trapped for THETA = 15: %s' % (start_trapped15),size=15)
+    #plt.text(1.e+8,0.9, 'Initially trapped for THETA = 20: %s' % (start_trapped20),size=15)
+    #plt.text(1.e+8,0.85, 'Initially trapped for THETA = 25: %s' % (start_trapped25),size=15)
+    #plt.text(1.e+8,0.8, 'Initially trapped for THETA = 30: %s' % (start_trapped30),size=15)
     plt.xlabel('Time (years)',size=18)
     plt.ylabel('Trapped stars (normalized)',size=18)
     plt.title('Fraction of Trapped Stars per Theta', size=22)
@@ -92,17 +107,27 @@ def angmom_plot():
     Lz_rms25 = data2_25[:,2]
     Lz_rms30 = data2_30[:,2]
     
+    #count number of initially trapped stars for each theta
+    lam_spec15 = data_15[:,9]
+    lam_spec20 = data_20[:,9]
+    lam_spec25 = data_25[:,9]
+    lam_spec30 = data_30[:,9]
+    start_trapped15 = float((lam_spec15 == 0).sum()+(lam_spec15 == 1).sum()+(lam_spec15 == 2).sum())
+    start_trapped20 = float((lam_spec20 == 0).sum()+(lam_spec20 == 1).sum()+(lam_spec20 == 2).sum())
+    start_trapped25 = float((lam_spec25 == 0).sum()+(lam_spec25 == 1).sum()+(lam_spec25 == 2).sum())
+    start_trapped30 = float((lam_spec30 == 0).sum()+(lam_spec30 == 1).sum()+(lam_spec30 == 2).sum())
+    
     #close previous plots
     plt.close('all')
     #plot it on one graph
-    plt.plot(t, Lz_rms15, label='Theta = 15', color='green')
-    plt.plot(t, Lz_rms20, label='Theta = 20', color='blue')
-    plt.plot(t, Lz_rms25, label='Theta = 25', color='purple')
-    plt.plot(t, Lz_rms30, label='Theta = 30', color='black')
+    plt.plot(t, (Lz_rms15/start_trapped15), label='Theta = 15', color='green')
+    plt.plot(t, (Lz_rms20/start_trapped20), label='Theta = 20', color='blue')
+    plt.plot(t, (Lz_rms25/start_trapped25), label='Theta = 25', color='purple')
+    plt.plot(t, (Lz_rms30/start_trapped30), label='Theta = 30', color='black')
     plt.xlabel('Time (years)',size=18)
-    plt.ylabel(r'rms of $\Delta$L ($kpc\frac{km}{s}$)', size=18)
+    plt.ylabel(r'rms of $\Delta$L ($kpc\frac{km}{s}$) (normalized)', size=18)
     plt.title('Change in Angular Momenta per Theta', size=22)
-    plt.legend(loc='1')
+    plt.legend(loc='upper left')
     plt.show()
 
 ###This function returns rms of angmom for each theta at different time intervals
