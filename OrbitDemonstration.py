@@ -61,8 +61,8 @@ stored in a and b respectively
 Now we can save the data in the non-rotating frame to our dump folder by using the 
 saveData method. Specifcy a filepath as an argument when saving the data
 '''
-
-orbit.saveData("C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/qp_file/")
+filename = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/qp_file/"
+orbit.saveData(filename)
 
 '''
 Finally, we can do all of these things simply with the method doAllThings()
