@@ -12,7 +12,7 @@ files2 = [i for i in os.listdir(filepath) if os.path.isfile(os.path.join(filepat
 
 #Import all data
 tableInfo1 = np.array([np.loadtxt(filepath+files1[i],delimiter=" ",dtype= str)[:,1:16].astype(float) for i in range(len(files1))]) 
-tableInfo2 = np.array([np.loadtxt(filepath+files2[i],delimiter=" ",dtype= str)[:,1:16].astype(float) for i in range(len(files2))]) 
+tableInfo2 = np.array([np.loadtxt(filepath+files2[i],delimiter=" ",dtype= str).astype(float) for i in range(len(files2))]) 
 
 ###This function plots fraction of trapped stars over time for each theta
 def trap_plot():
@@ -24,8 +24,8 @@ def trap_plot():
     
     plt.close('all')
     colors = ['green','blue','purple','black']
-    labels = ['Theta = 15 (%s at t=0)','Theta = 20 (%s at t=0)','Theta = 25 (%s at t=0)','Theta = 30 (%s at t=0)']
-    [plt.plot(t, trap_frac[i], label=labels[i] % (start_trapped[i]), color=colors[i])for i in range(len(tableInfo2))]
+    labels = ['Theta = 15 (%s ','Theta = 20 (%s ','Theta = 25 (%s ','Theta = 30 (%s ']
+    [plt.plot(t, trap_frac[i], label=labels[i] % (start_trapped[i]) +'trapped stars at t=0)', color=colors[i])for i in range(len(tableInfo2))]
     
     plt.xlabel('Time (years)',size=18)
     plt.ylabel('Trapped stars (normalized)',size=18)
