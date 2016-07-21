@@ -46,7 +46,7 @@ def angmom_plot():
     colors = ['green','blue','purple','black']
     labels = ['Theta = 15','Theta = 20','Theta = 25','Theta = 30']
     [plt.plot(t, Lz_rms[i]/start_trapped[i], label=labels[i], color=colors[i])for i in range(len(tableInfo2))]
-    [plt.plot(t, Lz_rms+spec[i]/start_trapped[i], label=labels[i], color=colors[i], ls='dashed')for i in range(len(tableInfo2))]
+    [plt.plot(t, Lz_rms_spec[i]/start_trapped[i], label=labels[i], color=colors[i], ls='dashed')for i in range(len(tableInfo2))]
     
     plt.xlabel('Time (years)',size=18)
     plt.ylabel(r'rms of $\Delta$L ($kpc\frac{km}{s}$) (normalized)', size=18)
