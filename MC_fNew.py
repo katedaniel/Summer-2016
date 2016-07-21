@@ -27,21 +27,20 @@ G = const.G
 vc = 220. *u.km /u.s             # Circular velocity of the disk
 RSun = 8. *u.kpc                 # Solar galactocentric radius
 SigmaSun = 50. *u.Msun /u.pc**2  # Surface density at the solar radius
-sigmaSun = 35. *u.km /u.s        # Velocity dispersion at the solar radius
+sigmaSun = 30. *u.km /u.s        # Velocity dispersion at the solar radius
 Rd = 2.5 *u.kpc                  # Scale length of the disk surface density
 Rs = 3.*Rd                       # Scale length for the velocity dispersion
 Rp = 1. *u.kpc                   # Scale length of the disk potential
 RMax = 15. *u.kpc                # Maximum radius, used to produce envelope function
 
-'''
 ################################################################################
 # Helpful little timer
 ################################################################################
+
 def timer(start,end):
     hours, rem = divmod(end-start, 3600)
     minutes, seconds = divmod(rem, 60)
     return "{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds)
-'''
 
 ################################################################################
 # Definitions to calculate stellar paremeters
@@ -128,7 +127,7 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
         # Declare the value of the DF f(x)
         fx = findf(iE,iLz)
         # Find enveloope function
-        fMax = findfMax(EMax,LzMax)
+        fMax = 2.*findfMax(EMax,LzMax)
         gx = fMax*M
         # Determine acceptance probability
         AcceptProb = fx/gx
@@ -137,9 +136,10 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
         # If utest < AcceptProb then accept these values for E and Lz
         if utest < AcceptProb:
             RL = findRL(iLz)/u.kpc
-            if (RL > 4) and (RL < 15):
+            if (RL > 4) and (RL < 12):
                 Eran = findEran(iE,iLz) # Find random energy(km/s)^2
-                if (Eran/(u.km/u.s)**2 > 0):
+                EranCutoff = 0
+                if (Eran/(u.km/u.s)**2 > EranCutoff):
                     vran = np.sqrt(2.*Eran) # Find amplitude of random velocity (km/s)
                     if (vran < 2.*findVelocityDispersion(3.*Rd)):
                         ranglec = 2.*pi *np.random.random() # Produce direction for position vector
@@ -166,7 +166,7 @@ def getMCqp0(): # Define initial conditions evenly distributed within f_New
                         vx0 = vcx + vranx # initial x-component of velocity vector in N-frame (km/s)
                         vy0 = vcy + vrany # initial y-component of velocity vector in N-frame (km/s)            
                         R = np.sqrt(x0**2 +y0**2)
-                        if  (R > 2) and (R < 15):
+                        if (R < 15):
                             x0 = x0
                             y0 = y0
                             # Get rid of explicit units

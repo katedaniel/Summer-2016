@@ -67,6 +67,7 @@ def trap_frac():
     trap_frac = end_trapped/start_trapped
     return trap_frac
 
+###This function makes a 4x4 plot of change in angmom per initial angmom for each time and theta
 def Lz_plot():
     #Extract Lz data and calculate delta Lz
     Lz = np.array([tableInfo1[i][:,10:15] for i in range(len(tableInfo1))])
