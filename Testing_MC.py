@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-plt.close('all')
+#plt.close('all')
 dim = 16 #dimensions of scatter plot and interval of radii to consider 
 
 #function that finds root mean square
@@ -24,7 +24,7 @@ def sort (radius,velocity):
     return rmsOut[2:,:]
 
 #Specify filepath to the initial conditions data
-filepath = "/Users/LBarbano/Github/Summer-2016/table1_theta=20.txt"
+filepath = "/Users/LBarbano/Github/Summer-2016/table1_theta=15.txt"
 tableInfo = np.loadtxt(filepath,delimiter=" ",dtype= str)
 filepaths = tableInfo[:,0]
 data = tableInfo[:,1:16].astype(float)
@@ -110,9 +110,29 @@ cbar = plt.colorbar(im)
 ax7.set_xlim(0, 15)
 plt.show()
 
+m =4
+vc = 220
+OmegaCR = 27.5
+#calculate Lindlbad Resonance radii
+R_1o = (m+np.sqrt(2))*vc/(m*OmegaCR)
+R_1i = (m-np.sqrt(2))*vc/(m*OmegaCR)
+#calculate ultraharmonic resonance radii
+R_2o = ((2*m)+np.sqrt(2))*vc/((2*m)*OmegaCR)
+R_2i = ((2*m)-np.sqrt(2))*vc/((2*m)*OmegaCR)
+
+#plot the lindblad radii
+lind1 = plt.Circle((0,0), (R_1o), color='g', fill=False,ls = 'dashed')
+lind2 = plt.Circle((0,0), (R_1i), color='g', fill=False,ls = 'dashed')
+lind1uh = plt.Circle((0,0), (R_2o), color='g', fill=False,ls = 'dotted')
+lind2uh = plt.Circle((0,0), (R_2i), color='g', fill=False,ls = 'dotted')
+
 fig8 = plt.figure()
 ax8 = fig8.add_subplot(111)
-H, xedges, yedges = np.histogram2d(x, y, range=[[-16.,16.0], [-16.,16.0]], bins=(80, 80))
+ax8.add_patch(lind1)
+ax8.add_patch(lind2)
+ax8.add_patch(lind1uh)
+ax8.add_patch(lind2uh)
+H, xedges, yedges = np.histogram2d(x, y, range=[[-16.,16.0], [-16.,16.0]], bins=(45, 45))
 myextent  = [xedges[0],xedges[-1],yedges[0],yedges[-1]]
 im = ax8.imshow(H.T,origin='low',extent=myextent,interpolation='nearest',aspect='equal')
 cbar = plt.colorbar(im)

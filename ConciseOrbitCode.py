@@ -12,7 +12,7 @@ def parseFilename(filename):
         args.append(num)
     return args
     
-orbit = OC.Orbit_Calculator(4,25,.01,8,.4,7.8,0.,30.,230.) 
+orbit = OC.Orbit_Calculator(4,25,.001,8,.4,7.8,0.,30.,230.) 
 orbit.makeOrbit() 
 orbit.saveData("/Users/LBarbano/Desktop/QP_Dump/")
 lam = orbit.findLam()
