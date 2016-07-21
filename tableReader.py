@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import Orbit_Code 
 reload(Orbit_Code)
 
-filepath = "/Users/LBarbano/Github/Summer-2016/" 
+filepath = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/" 
 
 #Get names of text files        
 files1 = [i for i in os.listdir(filepath) if os.path.isfile(os.path.join(filepath,i)) and 'table1' in i]
@@ -59,15 +59,6 @@ def Lz_rms():
     num = [11,12,13,14]
     rms = np.array([np.sqrt((tableInfo1[i][:,[10,num[j]]]**2).mean(axis=1)) for i in range(len(tableInfo1)) for j in range(len(num))])
     return np.split(rms,4)
-
-###This function returns the fraction of initially trapped orbits that end trapped for each theta
-def trap_frac():
-    lam_spec = np.array([tableInfo1[i][:,9] for i in range(len(tableInfo1))])
-    start_trapped = np.array([float((lam_spec[i] == 0).sum()+(lam_spec[i] == 1).sum()+(lam_spec[i] == 2).sum()) for i in range(len(tableInfo1))])
-    end_trapped = np.array([float((lam_spec[i] == 0).sum()+(lam_spec[i] == 1).sum()) for i in range(len(tableInfo1))])
-    #calculate fraction of initially trapped orbits that end trapped
-    trap_frac = end_trapped/start_trapped
-    return trap_frac
 
 ###This function returns the fraction of initially trapped orbits that end trapped for each theta
 def trap_frac():
