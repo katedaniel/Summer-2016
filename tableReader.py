@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import Orbit_Code 
 reload(Orbit_Code)
 
-filepath = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/" 
+filepath = "/Users/LBarbano/Github/Summer-2016/" 
 
 #Get names of text files        
 files1 = [i for i in os.listdir(filepath) if os.path.isfile(os.path.join(filepath,i)) and 'table1' in i]
@@ -24,8 +24,8 @@ def trap_plot():
     
     plt.close('all')
     colors = ['green','blue','purple','black']
-    labels = ['Theta = 15 (%s at t=0)','Theta = 20 (%s at t=0)','Theta = 25 (%s at t=0)','Theta = 30 (%s at t=0)']
-    [plt.plot(t, trap_frac[i], label=labels[i] % (start_trapped[i]), color=colors[i])for i in range(len(tableInfo2))]
+    labels = ['Theta = 15 (%s ','Theta = 20 (%s ','Theta = 25 (%s ','Theta = 30 (%s ']
+    [plt.plot(t, trap_frac[i], label=labels[i] % (start_trapped[i]) +'trapped stars at t=0)', color=colors[i])for i in range(len(tableInfo2))]
     
     plt.xlabel('Time (years)',size=18)
     plt.ylabel('Trapped stars (normalized)',size=18)
@@ -56,7 +56,16 @@ def angmom_plot():
 def Lz_rms():
     num = [11,12,13,14]
     rms = np.array([np.sqrt((tableInfo1[i][:,[10,num[j]]]**2).mean(axis=1)) for i in range(len(tableInfo1)) for j in range(len(num))])
-    return rms.reshape(len(tableInfo1),4)
+    return np.split(rms,4)
+
+###This function returns the fraction of initially trapped orbits that end trapped for each theta
+def trap_frac():
+    lam_spec = np.array([tableInfo1[i][:,9] for i in range(len(tableInfo1))])
+    start_trapped = np.array([float((lam_spec[i] == 0).sum()+(lam_spec[i] == 1).sum()+(lam_spec[i] == 2).sum()) for i in range(len(tableInfo1))])
+    end_trapped = np.array([float((lam_spec[i] == 0).sum()+(lam_spec[i] == 1).sum()) for i in range(len(tableInfo1))])
+    #calculate fraction of initially trapped orbits that end trapped
+    trap_frac = end_trapped/start_trapped
+    return trap_frac
 
 ###This function returns the fraction of initially trapped orbits that end trapped for each theta
 def trap_frac():
@@ -68,10 +77,10 @@ def trap_frac():
     return trap_frac
 
 ###This function makes a 4x4 plot of change in angmom per initial angmom for each time and theta
-def Lz_plot():
+def plot_Lz():
     #Extract Lz data and calculate delta Lz
     Lz = np.array([tableInfo1[i][:,10:15] for i in range(len(tableInfo1))])
-    del_Lz = np.array([np.subtract(Lz[i][:,j+1],Lz[i][:,0]) for i in range(len(tableInfo1)) for j in range (len(Lz[i].transpose())-1)]).reshape(len(files1),4)
+    del_Lz = np.array([np.subtract(Lz[i][:,j+1],Lz[i][:,0]) for i in range(len(tableInfo1)) for j in range (len(Lz[i].transpose())-1)])
 
     #It's plotting time baby ohhhhh yeah leggoooo
     plt.close('all')    
@@ -82,10 +91,9 @@ def Lz_plot():
     ax = [fig.add_subplot(dimx,4,i+1,aspect = 'auto') for i in range(dimx*4)] #create and add nx4 subplots
     
     #Generate histogram stuff
-    histograms = np.array([np.histogram2d(Lz[i][:,0], del_Lz[i,j], range=[[500,3500], [-500,500]], 
-    bins=(80, 60)) for i in range(len(del_Lz)) for j in range(4)])
+    histograms = np.array([np.histogram2d(Lz[i/4][:,0], del_Lz[i], range=[[500,3500], [-500,500]],bins=(80, 60)) for i in range(len(del_Lz)) ])
     im = [ax[i].imshow(histograms[i,0].T,origin='low',extent=[500.0, 3500.0, -500.0, 500.0],interpolation='nearest',aspect='auto', cmap='PuBuGn') for i in range(len(ax))]
-
+    
     #Hardcode some plot adjustments
     #the array lists in the below for loops contain the indeces of the subplots to be adjusted
     [ax[i-1].set_yticklabels([])  for i in [2,3,4,6,7,8,10,11,12,14,15,16]]
@@ -96,15 +104,16 @@ def Lz_plot():
     time_labels = ['t = 0.5','t = 1.0','t = 1.5','t = 2.0']
     [ax[val-1].set_ylabel(theta_labels[i])  for i, val in enumerate([1,5,9,13])]
     [ax[val-1].set_xlabel(time_labels[i])  for i, val in enumerate([13,14,15,16])]
-    
+        
     #Plot corotation and lindblad resonances
+    
     for i in range(len(ax)):
         ax[i].axvline(1760., color='black', alpha=0.5) #corotation
         ax[i].axvline(2382.25,color='g', ls='dashed', alpha=0.5) #outer harmonic
         ax[i].axvline(1137.746,color='g', ls='dashed', alpha=0.5)#inner harmonic
         ax[i].axvline(2071.13,color='g', ls='dotted', alpha=0.5) #outer ultraharmonic
         ax[i].axvline(1448.87,color='g', ls='dotted', alpha=0.5) #inner ultraharmonic        
-    
+
     #adding overall axis labels, title, and colorbar label
     fig.text(0.5, 0.02, r'Initial L $(1000 kpc\frac{km}{s})$', ha='center', size=18)
     fig.text(0.02, 0.5, r'$\Delta L (kpc\frac{km}{s})$', va='center', rotation='vertical', size=18)
