@@ -38,6 +38,7 @@ def angmom_plot():
     
     t = tableInfo2[0][:,0] 
     Lz_rms = np.array([tableInfo2[i][:,2] for i in range(len(tableInfo2))])
+    Lz_rms_spec = np.array([tableInfo2[i][:,3] for i in range(len(tableInfo2))])
     lam_spec = np.array([tableInfo1[i][:,9] for i in range(len(tableInfo1))])
     start_trapped = [(lam_spec[i] == 0).sum()+(lam_spec[i] == 1).sum()+(lam_spec[i] == 2).sum() for i in range(len(tableInfo1))]
     
@@ -45,6 +46,7 @@ def angmom_plot():
     colors = ['green','blue','purple','black']
     labels = ['Theta = 15','Theta = 20','Theta = 25','Theta = 30']
     [plt.plot(t, Lz_rms[i]/start_trapped[i], label=labels[i], color=colors[i])for i in range(len(tableInfo2))]
+    [plt.plot(t, Lz_rms+spec[i]/start_trapped[i], label=labels[i], color=colors[i], ls='dashed')for i in range(len(tableInfo2))]
     
     plt.xlabel('Time (years)',size=18)
     plt.ylabel(r'rms of $\Delta$L ($kpc\frac{km}{s}$) (normalized)', size=18)
