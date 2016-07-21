@@ -1,6 +1,7 @@
+#!/usr/bin/env python
+
 '''
 This file demonstrates how to utilize the Orbit_Calculator Class.
-
 Start by importing the Orbit_Calculator class from the file Orbit_Calculator.
 Once it has been imported, type help(Orbit_Calculator) to get a summary of the 
 class's attributes and methods. See the command line for the class summary 
@@ -14,7 +15,6 @@ reload(Orbit_Code)
 '''
 Instantiate an Orbit_Calculator object with the appropriate parameters. The 
 instance of our Orbit_Calculator will be called "orbit"
-
 The arguments are respectively:
 1: number of spiral arms
 2: Duration of simulation (units implicit gigayears)
@@ -59,18 +59,5 @@ stored in a and b respectively
 Now we can save the data in the non-rotating frame to our dump folder by using the 
 saveData method. Specifcy a filepath as an argument when saving the data
 '''
-filename = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/qp_file/"
+filename = "/Users/LBarbano/Desktop/QP_Dump/"
 orbit.saveData(filename)
-
-'''
-Finally, we can do all of these things simply with the method doAllThings()
-This method will call makeOrbit(), plot(1), and saveData() in succession. 
-This is helpful when we just want to run the simulation, plot the orbit in the 
-rotating frame, and save qp. Type the following code into the command line to
-try it out. It should do the same thing as the previous code, except that it 
-plots the orbit in the rotating frame and doesn't store qp and qpR in a and b. 
-Not that you must have already run a file that imported Orbit_Calculator in order
-to use Orbit_Calculator from the command line.
-'''
-#orbit1 = Orbit_Calculator(4,.01,8,.4,7.8,0.,3.,230.)
-#orbit1.doAllThings()
