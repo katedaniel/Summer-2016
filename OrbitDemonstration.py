@@ -1,7 +1,6 @@
-#!/usr/bin/env python
-
 '''
 This file demonstrates how to utilize the Orbit_Calculator Class.
+
 Start by importing the Orbit_Calculator class from the file Orbit_Calculator.
 Once it has been imported, type help(Orbit_Calculator) to get a summary of the 
 class's attributes and methods. See the command line for the class summary 
@@ -15,6 +14,7 @@ reload(Orbit_Code)
 '''
 Instantiate an Orbit_Calculator object with the appropriate parameters. The 
 instance of our Orbit_Calculator will be called "orbit"
+
 The arguments are respectively:
 1: number of spiral arms
 2: Duration of simulation (units implicit gigayears)
@@ -59,7 +59,7 @@ stored in a and b respectively
 Now we can save the data in the non-rotating frame to our dump folder by using the 
 saveData method. Specifcy a filepath as an argument when saving the data
 '''
-filename = "/Users/LBarbano/Desktop/QP_Dump/"
+filename = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/qp_file/"
 orbit.saveData(filename)
 
 '''
