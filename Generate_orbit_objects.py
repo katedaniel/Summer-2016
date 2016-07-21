@@ -4,7 +4,8 @@ import Orbit_Code as OC
 reload(OC)
     
 #load the table
-dataFilePath = "/Users/LBarbano/Github/Summer-2016/table1_theta=15.txt"
+theta = 'theta=15'
+dataFilePath = "/Users/LBarbano/Github/Summer-2016/table1_"+theta+".txt"
 tableInfo = np.loadtxt(dataFilePath,delimiter=" ",dtype= str)
 filepaths = tableInfo[:,0]
 data = tableInfo[:,1:16].astype(float)
@@ -30,6 +31,8 @@ qpRdata = np.array([orbits[i].getqpR() for i in range(length)])
 duration = default_timer() - start
 print "time: %s s" % str(duration) 
 
+#Add time values to qpR
 qpR = np.array([np.c_[qpRdata[i,:,0:2],t[i].transpose()] for i in range(length)])
 
+#Save qpR data
 np.save('/Users/LBarbano/Github/Summer-2016/qpRdata_(theta=15).npy',qpR)
