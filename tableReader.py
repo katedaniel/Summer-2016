@@ -35,7 +35,7 @@ def trap_plot():
     
 ###This function plots rms of change in angmom over time for each theta
 def angmom_plot():
-    
+      
     t = tableInfo2[0][:,0] 
     Lz_rms = np.array([tableInfo2[i][:,2] for i in range(len(tableInfo2))])
     Lz_rms_spec = np.array([tableInfo2[i][:,3] for i in range(len(tableInfo2))])
@@ -46,7 +46,7 @@ def angmom_plot():
     colors = ['green','blue','purple','black']
     labels = ['Theta = 15','Theta = 20','Theta = 25','Theta = 30']
     [plt.plot(t, Lz_rms[i]/start_trapped[i], label=labels[i], color=colors[i])for i in range(len(tableInfo2))]
-    [plt.plot(t, Lz_rms_spec[i]/start_trapped[i], label=labels[i], color=colors[i], ls='dashed')for i in range(len(tableInfo2))]
+    [plt.plot(t, Lz_rms_spec[i]/start_trapped[i], color=colors[i], ls='dashed')for i in range(len(tableInfo2))]
     
     plt.xlabel('Time (years)',size=18)
     plt.ylabel(r'rms of $\Delta$L ($kpc\frac{km}{s}$) (normalized)', size=18)
@@ -69,7 +69,6 @@ def trap_frac():
     trap_frac = end_trapped/start_trapped
     return trap_frac
 
-###This function makes a 4x4 plot of change in angmom per initial angmom for each time and theta
 def plot_Lz():
     #Extract Lz data and calculate delta Lz
     Lz = np.array([tableInfo1[i][:,10:15] for i in range(len(tableInfo1))])
