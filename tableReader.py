@@ -1,7 +1,8 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import Orbit_Code 
+import Orbit_Code
+from matplotlib.colors import LogNorm
 reload(Orbit_Code)
 
 filepath = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/" 
@@ -84,13 +85,16 @@ def plot_Lz():
     
     #Generate histogram stuff
     histograms = np.array([np.histogram2d(Lz[i/4][:,0], del_Lz[i], range=[[500,3500], [-500,500]],bins=(80, 60)) for i in range(len(del_Lz)) ])
-    im = [ax[i].imshow(histograms[i,0].T,origin='low',extent=[500.0, 3500.0, -500.0, 500.0],interpolation='nearest',aspect='auto', cmap='PuBuGn') for i in range(len(ax))]
+    my_cmap = plt.cm.get_cmap('spectral')
+    my_cmap.set_under('w')
+    im = [ax[i].imshow(histograms[i,0].T,origin='low',extent=[500.0, 3500.0, -500.0, 500.0],interpolation='nearest',aspect='auto', cmap=my_cmap,norm=LogNorm(),vmin=1.) for i in range(len(ax))]
     
     #Hardcode some plot adjustments
     #the array lists in the below for loops contain the indeces of the subplots to be adjusted
     [ax[i-1].set_yticklabels([])  for i in [2,3,4,6,7,8,10,11,12,14,15,16]]
     [ax[i-1].set_xticklabels([])  for i in [1,5,9,4,8,12]]
     [ax[i-1].set_xticklabels(['',1,'',2,'',3])  for i in [13,14,15,16]]
+    [ax[i-1].set_yticklabels(['',-0.4,-0.2,0,0.2,0.4])  for i in [1,5,9,13]]
     
     theta_labels = [r'$\theta=15$',r'$\theta=20$',r'$\theta=25$',r'$\theta=30$']
     time_labels = ['t = 0.5','t = 1.0','t = 1.5','t = 2.0']
@@ -100,20 +104,26 @@ def plot_Lz():
     #Plot corotation and lindblad resonances
     
     for i in range(len(ax)):
-        ax[i].axvline(1760., color='black', alpha=0.5) #corotation
-        ax[i].axvline(2382.25,color='g', ls='dashed', alpha=0.5) #outer harmonic
-        ax[i].axvline(1137.746,color='g', ls='dashed', alpha=0.5)#inner harmonic
-        ax[i].axvline(2071.13,color='g', ls='dotted', alpha=0.5) #outer ultraharmonic
-        ax[i].axvline(1448.87,color='g', ls='dotted', alpha=0.5) #inner ultraharmonic        
+        ax[i].axvline(1760., color='black') #corotation
+        ax[i].axvline(2382.25,color='black', ls='dashed') #outer lindblad
+        ax[i].axvline(1137.746,color='black', ls='dashed')#inner lindblad
+        ax[i].axvline(2071.13,color='black', ls='dotted', lw=2) #outer ultraharmonic
+        ax[i].axvline(1448.87,color='black', ls='dotted', lw=2) #inner ultraharmonic        
 
     #adding overall axis labels, title, and colorbar label
     fig.text(0.5, 0.02, r'Initial L $(1000 kpc\frac{km}{s})$', ha='center', size=18)
-    fig.text(0.02, 0.5, r'$\Delta L (kpc\frac{km}{s})$', va='center', rotation='vertical', size=18)
-    fig.text(0.85, 0.87, 'Number\nof Stars')
+    fig.text(0.02, 0.5, r'$\Delta L (1000 kpc\frac{km}{s})$', va='center', rotation='vertical', size=18)
+    fig.text(0.85, 0.87, 'Number of\nStars (log)')
+    fig.text(0.905,0.75,'40')
+    fig.text(0.905,0.63,'20')
+    fig.text(0.905,0.5,'10')
+    fig.text(0.905,0.41,'5')
+    fig.text(0.905,0.26,'2')
+    fig.text(0.905,0.14,'1')
     plt.suptitle('Change in Angular Momentum', size=22)
     
     #slight adjustments and put it all together
     fig.subplots_adjust(right=0.8, bottom=0.17, left=0.17)
     cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
-    fig.colorbar(im[0],cax=cbar_ax)
+    fig.colorbar(im[0],cax=cbar_ax, ticks=[0.9,2,5,9,20,40])
     plt.show()
