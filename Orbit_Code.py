@@ -290,7 +290,7 @@ class Orbit_Calculator(object):
             self.qp[i] = qpstep
             
         global qpR
-        qpR =  self.__toRframe(self.qp) 
+        self.qpR =  self.__toRframe(self.qp) 
           
         duration = default_timer() - start 
         print "time: %s s" % str(duration)
@@ -382,7 +382,7 @@ class Orbit_Calculator(object):
             
         if plotOption==0:  #this plots in the inertial frame (rarely used)
             self.qps = self.qp
-        elif plotOption==1:  #this plots in the rotatig frame (usually used)
+        elif plotOption==1:  #this plots in the rotating frame (usually used)
             self.qps = self.qpR
             [Rgx,Rgy] = self.findRg()
             plt.plot(Rgx,Rgy,color="black", markevery=500, marker='.', ms=8)
@@ -402,15 +402,16 @@ class Orbit_Calculator(object):
         ax1 = fig.add_subplot(3,1,1)
         ax2 = fig.add_subplot(3,1,2, sharex = ax1)
         ax3 = fig.add_subplot(3,1,3)
-        fig.subplots_adjust(hspace=0.)
+        fig.subplots_adjust(hspace=0.05)
         
-        ax1.set_ylabel(r'$\Lambda_{nc,2} (t)$', size=18)
+        ax1.set_ylabel(r'$\Lambda_{nc,2} (t)$', size=20)
         ax2.set_ylabel(r'$\frac{E_{ran} (t)}{E_{ran,0}}$', size=22)
-        ax3.set_ylabel(r'$\frac{R_{L} (t) - R_{CR}}{kpc}$', size=20)
+        ax3.set_ylabel(r'$\frac{R_{L} (t) - R_{CR}}{kpc}$', size=22)
         ax3.set_xlabel(r't ($10^8$ years)')
+        fig.suptitle('Orbital Properties', size=25)
         
         ax1.set_ylim([-1.3,1.3])
-        ax2.set_ylim([-0.5,5.9])
+        ax2.set_ylim([0.,2.9])
         ax3.set_ylim([-2.9,2.9])
         
         ax1.set_xticklabels([])
@@ -564,3 +565,29 @@ class Orbit_Calculator(object):
         Lz_3 = Lz[(3.*size/4.)]  #angmom after three quarters time
         Lz_4 = Lz[(size-1)]     #final angmom
         return np.array([Lz_0,Lz_1,Lz_2,Lz_3,Lz_4])
+###This function will calculate if/when a star crosses a resonance
+    def overlap(self):
+        #pulling info out of qp to find R and R_g
+        x = self.qp[:,0]*u.kpc
+        y = self.qp[:,1]*u.kpc
+        vx = self.qp[:,2]*u.km/u.s
+        vy = self.qp[:,3]*u.km/u.s
+        t = self.qp[:,4]
+        R_g = ((np.sqrt(x**2 + y**2)*-np.sqrt(vx**2 + vy**2)*np.sin(np.arctan2(y,x) - np.arctan2(vy,vx))/vc)).value
+        #calculate Lindlbad Resonance radii
+        R_1o = ((m+np.sqrt(2))*vc/(m*OmegaCR)).value
+        R_1i = ((m-np.sqrt(2))*vc/(m*OmegaCR)).value
+        #calculate ultraharmonic resonance radii
+        R_2o = (((2*m)+np.sqrt(2))*vc/((2*m)*OmegaCR)).value
+        R_2i = (((2*m)-np.sqrt(2))*vc/((2*m)*OmegaCR)).value
+        #spline the R vs t curve
+        Rspline1 = interpolate.splrep(t,R_g-R_1o, s=0)
+        Rspline2 = interpolate.splrep(t,R_g-R_1i, s=0)
+        Rspline3 = interpolate.splrep(t,R_g-R_2o, s=0)
+        Rspline4 = interpolate.splrep(t,R_g-R_2i, s=0)
+        #find the times where R_g crosses the resonance radius: roots of the spline-radius function
+        roots_1o = interpolate.sproot(Rspline1)
+        roots_1i = interpolate.sproot(Rspline2)
+        roots_2o = interpolate.sproot(Rspline3)
+        roots_2i = interpolate.sproot(Rspline4)
+        return [roots_1o,roots_1i,roots_2o,roots_2i]
