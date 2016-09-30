@@ -456,6 +456,14 @@ class Orbit_Calculator(object):
         ax3.plot(t, R_var, c='r', ls='dashed')
         ax3.plot(t, R_g_var, c='black')
         
+        #Putting in vertical lines for resonance crosses
+        overlap = self.overlap()
+        for res in overlap:
+            for time in res:
+                ax1.axvline(x=time,c='0.5')
+                ax2.axvline(x=time,c='0.5')
+                ax3.axvline(x=time,c='0.5')
+                
         plt.show()    
 
 
