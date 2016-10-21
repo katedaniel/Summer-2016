@@ -13,11 +13,11 @@ def parseFilename(filename):
 
 ###If you want to create a new qp
 #make the orbit
-orbit = OC.Orbit_Calculator(4,20,.3,8,.3,5.,5.,50.,230.) 
+orbit = OC.Orbit_Calculator(4,30,.1,8,.3,7.1,0.,90.,220.) 
 orbit.makeOrbit()
 #save the orbit
 filename = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/qp_file/"
-orbit.saveData(filename)
+#orbit.saveData(filename)
 
 '''
 ##If you want to load a previous qp
