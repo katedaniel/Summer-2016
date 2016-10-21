@@ -10,10 +10,12 @@ filepath = "C:/Users/Noah/Documents/GitHub/Trapped_Orbital_Integrator/"
 #Get names of text files        
 files1 = [i for i in os.listdir(filepath) if os.path.isfile(os.path.join(filepath,i)) and 'table1' in i]
 files2 = [i for i in os.listdir(filepath) if os.path.isfile(os.path.join(filepath,i)) and 'table2' in i]
+files_ROE = [i for i in os.listdir(filepath) if os.path.isfile(os.path.join(filepath,i)) and 'table_ROE' in i]
 
 #Import all data
 tableInfo1 = np.array([np.loadtxt(filepath+files1[i],delimiter=" ",dtype= str)[:,1:16].astype(float) for i in range(len(files1))]) 
 tableInfo2 = np.array([np.loadtxt(filepath+files2[i],delimiter=" ",dtype= str).astype(float) for i in range(len(files2))]) 
+tableInfo_ROE = np.array([np.loadtxt(filepath+files_ROE[i],delimiter=" ",dtype= str).astype(float) for i in range(len(files_ROE))]) 
 
 ###This function plots fraction of trapped stars over time for each theta
 def trap_plot():
@@ -32,6 +34,34 @@ def trap_plot():
     plt.ylabel('Trapped stars (normalized)',size=18)
     plt.title('Fraction of Trapped Stars per Theta', size=22)
     plt.legend()
+    plt.show()
+
+###This function is basically the previous trap plot, but seperated by resonance and spiral arm interactions   
+def trap_plot2():
+    t = tableInfo2[0][:,0] 
+    trap_frac = np.array([tableInfo2[i][:,1] for i in range(len(tableInfo2))])
+    trap_frac1 = np.array([tableInfo2[i][:,4] for i in range(len(tableInfo2))])
+    trap_frac2 = np.array([tableInfo2[i][:,5] for i in range(len(tableInfo2))])
+
+    plt.close('all')
+    fig = plt.figure() #create figure
+    fig.subplots_adjust(wspace=0.05,hspace=0.05) #some plotting stuff
+    ax = [fig.add_subplot(2,2,i+1,aspect = 'auto') for i in range(4)] #create and add 2x2 subplots
+    
+    for i in range(4):
+        ax[i].plot(t,trap_frac[i],color='black')
+        ax[i].plot(t,trap_frac1[i],color='blue',label='No Overlap')
+        ax[i].plot(t,trap_frac2[i],color='red',label='Resonance Overlap')
+    
+    ax[0].set_xticklabels([])
+    ax[1].set_xticklabels([])
+    ax[1].set_yticklabels([])
+    ax[3].set_yticklabels([])
+    ax[1].legend(['Total','No Overlap','Resoance Overlap'])
+    plt.suptitle('Fraction of Trapped Stars', size=22)
+    fig.text(0.5, 0.02, 'Time (years)', ha='center', size=18)
+    fig.text(0.02, 0.5, 'Fraction of Trapped Stars (normalized)', va='center', rotation='vertical', size=18)
+    
     plt.show()
     
 ###This function plots rms of change in angmom over time for each theta
@@ -127,3 +157,56 @@ def plot_Lz():
     cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
     fig.colorbar(im[0],cax=cbar_ax, ticks=[0.9,2,5,9,20,40])
     plt.show()
+    
+def ROE_hist():
+    #Extract ROE data ad del_ROE
+    ROE_tot15 = np.array(tableInfo_ROE[0])
+    ROE_tot20 = np.array(tableInfo_ROE[1])
+    ROE_tot25 = np.array(tableInfo_ROE[2])
+    ROE_tot30 = np.array(tableInfo_ROE[3])
+    ROE15_1 = []
+    ROE20_1 = []
+    ROE25_1 = []
+    ROE30_1 = []
+    ROE15_2 = []
+    ROE20_2 = []
+    ROE25_2 = []
+    ROE30_2 = []
+    for ROE in ROE_tot15:
+        if ROE[0] == 1.:
+            ROE15_1.append(ROE[1:])
+        if ROE[0] == 2.:
+            ROE15_2.append(ROE[1:])
+    for ROE in ROE_tot20:
+        if ROE[0] == 1.:
+            ROE20_1.append(ROE[1:])
+        if ROE[0] == 2.:
+            ROE20_2.append(ROE[1:])
+    for ROE in ROE_tot25:
+        if ROE[0] == 1.:
+            ROE25_1.append(ROE[1:])
+        if ROE[0] == 2.:
+            ROE25_2.append(ROE[1:])
+    for ROE in ROE_tot30:
+        if ROE[0] == 1.:
+            ROE30_1.append(ROE[1:])
+        if ROE[0] == 2.:
+            ROE30_2.append(ROE[1:])
+    
+    del_ROE = np.array([np.subtract(ROE[i][:,j+1],ROE[i][:,0]) for i in range(len(tableInfo_ROE)) for j in range (len(ROE[i].transpose())-1)])
+    
+    #It's plotting time baby ohhhhh yeah leggoooo
+    plt.close('all')    
+    
+    fig = plt.figure() #create figure
+    fig.subplots_adjust(wspace=0,hspace=0) #some plotting stuff
+    ax = [fig.add_subplot(4,2,i+1,aspect = 'auto') for i in range(8)] #create and add nx2 subplots
+    
+    #Generate histogram stuff
+    histogram15_1 = np.histogram2d(ROE15_1, del_Lz[i], range=[[500,3500], [-500,500]],bins=(80, 60))
+    
+    histograms = np.array([np.histogram2d(ROE[:,0], del_Lz[i], range=[[500,3500], [-500,500]],bins=(80, 60)) for i in range(len(del_Lz))])
+    my_cmap = plt.cm.get_cmap('spectral')
+    my_cmap.set_under('w')
+    im = [ax[i].imshow(histograms[i,0].T,origin='low',extent=[500.0, 3500.0, -500.0, 500.0],interpolation='nearest',aspect='auto', cmap=my_cmap,norm=LogNorm(),vmin=1.) for i in range(len(ax))]
+    

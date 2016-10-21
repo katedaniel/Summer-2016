@@ -573,7 +573,7 @@ class Orbit_Calculator(object):
         Lz_3 = Lz[(3.*size/4.)]  #angmom after three quarters time
         Lz_4 = Lz[(size-1)]     #final angmom
         return np.array([Lz_0,Lz_1,Lz_2,Lz_3,Lz_4])
-###This function will calculate if/when a star crosses a resonance
+###This function will calculate if/when a star crosses a resonance or spiral arm
     def overlap(self):
         #pulling info out of qp to find R and R_g
         x = self.qp[:,0]*u.kpc
@@ -599,3 +599,11 @@ class Orbit_Calculator(object):
         roots_2o = interpolate.sproot(Rspline3)
         roots_2i = interpolate.sproot(Rspline4)
         return [roots_1o,roots_1i,roots_2o,roots_2i]
+###This function will return a value that corresponds to its possible interaction with resonances/spiral arms
+    def overlap_val(self):
+        overlaps = self.overlap()
+        val = 1 #assume there is no resonance overlap
+        for res in overlaps:
+            if res.size:
+                val = 2 #change it if there exists a resonance overlap
+        return val
