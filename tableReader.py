@@ -28,7 +28,7 @@ def trap_plot():
     plt.close('all')
     colors = ['green','blue','purple','black']
     labels = ['Theta = 15 (%s ','Theta = 20 (%s ','Theta = 25 (%s ','Theta = 30 (%s ']
-    [plt.plot(t, trap_frac[i], label=labels[i] % (start_trapped[i]) +'trapped stars at t=0)', color=colors[i])for i in range(len(tableInfo2))]
+    [plt.plot(t, trap_frac[i]/trap_frac[i][0], label=labels[i] % (start_trapped[i]) +'trapped stars at t=0)', color=colors[i])for i in range(len(tableInfo2))]
     
     plt.xlabel('Time (years)',size=18)
     plt.ylabel('Trapped stars (normalized)',size=18)
@@ -45,22 +45,22 @@ def trap_plot2():
 
     plt.close('all')
     fig = plt.figure() #create figure
-    fig.subplots_adjust(wspace=0.05,hspace=0.05) #some plotting stuff
+    fig.subplots_adjust(wspace=0.03,hspace=0.03) #some plotting stuff
     ax = [fig.add_subplot(2,2,i+1,aspect = 'auto') for i in range(4)] #create and add 2x2 subplots
     
     for i in range(4):
-        ax[i].plot(t,trap_frac[i],color='black')
-        ax[i].plot(t,trap_frac1[i],color='blue',label='No Overlap')
-        ax[i].plot(t,trap_frac2[i],color='red',label='Resonance Overlap')
+        ax[i].plot(t,trap_frac[i]/trap_frac[i][0],color='black')
+        ax[i].plot(t,trap_frac1[i]/trap_frac[i][0],color='blue')
+        ax[i].plot(t,trap_frac2[i]/trap_frac[i][0],color='red')
     
     ax[0].set_xticklabels([])
     ax[1].set_xticklabels([])
     ax[1].set_yticklabels([])
     ax[3].set_yticklabels([])
-    ax[1].legend(['Total','No Overlap','Resoance Overlap'])
+    ax[1].legend(['Total','No Interaction','Resonance Interaction'])
     plt.suptitle('Fraction of Trapped Stars', size=22)
     fig.text(0.5, 0.02, 'Time (years)', ha='center', size=18)
-    fig.text(0.02, 0.5, 'Fraction of Trapped Stars (normalized)', va='center', rotation='vertical', size=18)
+    fig.text(0.02, 0.5, 'Number of Trapped Stars (normalized)', va='center', rotation='vertical', size=18)
     
     plt.show()
     
